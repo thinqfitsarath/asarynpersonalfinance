@@ -5,6 +5,8 @@ import { passwordSchema } from '@/lib/validations/password';
 import { encrypt, decrypt } from '@/lib/utils/encryption';
 
 // GET /api/passwords - Get all passwords for the current user
+// NOTE: Passwords are NOT decrypted in this endpoint for security
+// Use GET /api/passwords/[id]/reveal to decrypt individual passwords
 export async function GET(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
@@ -28,24 +30,19 @@ export async function GET(req: Request) {
         category: true,
         title: true,
         username: true,
-        encryptedPassword: true,
         url: true,
         notes: true,
         createdAt: true,
         updatedAt: true,
+        // DO NOT include encryptedPassword
       },
     });
 
-    // Decrypt passwords for the response
-    const decryptedPasswords = passwords.map((pwd) => ({
-      ...pwd,
-      password: decrypt(pwd.encryptedPassword),
-      encryptedPassword: undefined, // Don't send encrypted version
-    }));
-
-    return NextResponse.json(decryptedPasswords);
+    return NextResponse.json(passwords);
   } catch (error) {
-    console.error('Error fetching passwords:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching passwords:', error);
+    }
     return NextResponse.json(
       { error: 'Failed to fetch passwords' },
       { status: 500 }

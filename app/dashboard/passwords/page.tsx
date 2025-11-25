@@ -9,7 +9,6 @@ interface Password {
   category: string;
   title: string;
   username?: string;
-  password: string;
   url?: string;
   notes?: string;
   createdAt: string;
@@ -32,7 +31,8 @@ export default function PasswordsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('');
-  const [showPassword, setShowPassword] = useState<string | null>(null);
+  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
+  const [revealingPassword, setRevealingPassword] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPasswords();
@@ -78,8 +78,34 @@ export default function PasswordsPage() {
     }
   };
 
-  const togglePasswordVisibility = (id: string) => {
-    setShowPassword(showPassword === id ? null : id);
+  const togglePasswordVisibility = async (id: string) => {
+    // If already revealed, hide it
+    if (revealedPasswords[id]) {
+      const newRevealed = { ...revealedPasswords };
+      delete newRevealed[id];
+      setRevealedPasswords(newRevealed);
+      return;
+    }
+
+    // Otherwise, fetch and reveal the password
+    setRevealingPassword(id);
+    try {
+      const response = await fetch(`/api/passwords/${id}/reveal`);
+
+      if (!response.ok) {
+        throw new Error('Failed to reveal password');
+      }
+
+      const data = await response.json();
+      setRevealedPasswords({
+        ...revealedPasswords,
+        [id]: data.password,
+      });
+    } catch (err) {
+      alert('Failed to reveal password');
+    } finally {
+      setRevealingPassword(null);
+    }
   };
 
   if (loading) {
@@ -196,15 +222,20 @@ export default function PasswordsPage() {
                   </label>
                   <div className="mt-1 flex items-center gap-2">
                     <code className="flex-1 rounded bg-gray-100 px-2 py-1 text-sm font-mono">
-                      {showPassword === password.id
-                        ? password.password
+                      {revealedPasswords[password.id]
+                        ? revealedPasswords[password.id]
                         : '••••••••••••'}
                     </code>
                     <button
                       onClick={() => togglePasswordVisibility(password.id)}
-                      className="text-sm text-indigo-600 hover:text-indigo-500"
+                      disabled={revealingPassword === password.id}
+                      className="text-sm text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
                     >
-                      {showPassword === password.id ? 'Hide' : 'Show'}
+                      {revealingPassword === password.id
+                        ? 'Loading...'
+                        : revealedPasswords[password.id]
+                        ? 'Hide'
+                        : 'Show'}
                     </button>
                   </div>
                 </div>
