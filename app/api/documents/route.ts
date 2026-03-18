@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { documentSchema } from '@/lib/validations/document';
-import { Decimal } from '@prisma/client/runtime/library';
 
 // GET /api/documents - Get all documents for the current user
 export async function GET(req: Request) {
@@ -60,8 +59,8 @@ export async function POST(req: Request) {
         documentType: validatedData.documentType || null,
         provider: validatedData.provider || null,
         policyNumber: validatedData.policyNumber || null,
-        amount: validatedData.amount ? new Decimal(validatedData.amount) : null,
-        premium: validatedData.premium ? new Decimal(validatedData.premium) : null,
+        amount: validatedData.amount || null,
+        premium: validatedData.premium || null,
         maturityDate: validatedData.maturityDate || null,
       },
     });

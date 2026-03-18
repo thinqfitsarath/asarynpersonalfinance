@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -93,8 +93,8 @@ model Document {
   // For policies and investments
   provider    String?
   policyNumber String?
-  amount      Decimal?  @db.Decimal(15, 2)
-  premium     Decimal?  @db.Decimal(15, 2)
+  amount      Float?
+  premium     Float?
   maturityDate DateTime?
 
   // File storage
