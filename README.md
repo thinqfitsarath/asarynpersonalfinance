@@ -1,116 +1,98 @@
-# Family Legacy Manager
+# Family Legacy Manager 🔐
 
-A secure, encrypted application for managing passwords, documents, and financial information with emergency access features for trusted family members and contacts.
+A secure, self-hosted password and document management system designed for families to manage critical information and enable trusted emergency access.
 
-## Features
+## 🎯 Purpose
 
-### 🔐 Password Vault
-- **Secure Storage**: Military-grade AES-256 encryption for all passwords
-- **Categories**: Bank accounts, email, phone, laptop, investment apps, Google accounts, and more
-- **Easy Management**: Add, edit, delete, and search passwords
-- **Audit Logging**: Track all access and modifications
+Store and manage:
+- **Passwords**: Bank accounts, email, phones, laptops, Google accounts, investments
+- **Documents**: Investment policies, insurance policies, house documents, certificates
+- **Trusted Contacts**: Emergency access for family members, lawyers, executors
+
+## ✨ Key Features
+
+### 🔒 Military-Grade Security
+- **AES-256-GCM encryption** for all sensitive data
+- **PBKDF2 key derivation** (100,000 iterations)
+- **Unique salt and IV** per encryption operation
+- **Authentication tags** for data integrity verification
+- **Security headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- **Route protection** with authentication middleware
+- **Session timeout** (30 minutes of inactivity)
+
+### 📝 Password Management
+- Store unlimited passwords with encryption
+- Categories: Bank, Email, Phone, Laptop, Investment, Other
+- Fields: Title, Username, Password (encrypted), URL, Notes
+- **Secure reveal pattern**: Passwords only decrypted on-demand
+- Audit logging for every password access
 
 ### 📄 Document Management
-- **Investment Policies**: Track policy numbers, amounts, maturity dates
-- **Insurance Policies**: Store provider details, coverage amounts, premiums
-- **House Documents**: Manage deeds, mortgages, property documents
-- **Other Documents**: Any important financial or legal documents
-- **Encrypted Storage**: All sensitive data is encrypted at rest
+- Store document metadata and file information
+- Categories: Investment, Insurance, House, Other
+- Track: Policy numbers, amounts, premiums, maturity dates
+- Encrypted file path storage
+- Support for various document types
 
-### 👨‍👩‍👧‍👦 Emergency Access
-- **Trusted Contacts**: Designate family members, lawyers, or executors
-- **Access Levels**: Full access, view-only, or emergency-only permissions
-- **Time-Delayed Access**: Configurable delay period before access is granted
-- **Notifications**: Alert system for access requests
+### 👨‍👩‍👧‍👦 Trusted Contacts & Emergency Access
+- Designate trusted contacts (spouse, children, lawyer, executor)
+- Access levels: Full, View-Only, Emergency-Only
+- Configurable delay period (0-365 days)
+- Emergency access request system
+- Active/inactive contact management
 
-### 🔍 Security Features
-- End-to-end encryption for all sensitive data
-- Secure session management with automatic timeout (30 minutes)
-- Comprehensive audit logs
-- HTTPS-only in production
-- Password strength requirements
-- Input validation and sanitization
+### 📊 Audit Logging
+- Track all sensitive operations
+- Logs include: Action, IP address, User-Agent, timestamp
+- Actions tracked: Login, password reveal, document access, emergency requests
+- Full audit trail for security compliance
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
-- **Database**: PostgreSQL
-- **ORM**: Prisma
 - **Authentication**: NextAuth.js v4
-- **Encryption**: crypto-js (AES-256)
-- **Styling**: Tailwind CSS
-- **Password Hashing**: bcryptjs
+- **Database**: Prisma ORM (SQLite/PostgreSQL)
+- **Encryption**: Node.js native crypto (AES-256-GCM)
+- **UI**: Tailwind CSS + shadcn/ui components
+- **Validation**: Zod
+- **Sanitization**: isomorphic-dompurify
 
-## Prerequisites
+## 🚀 Quick Start
 
-- Node.js 18+
-- PostgreSQL 14+
-- npm or yarn
+### Prerequisites
+- Node.js 18+ ([Download](https://nodejs.org/))
+- npm (comes with Node.js)
 
-## Installation
-
-### 1. Clone the Repository
+### Automated Setup
 
 ```bash
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/thinqfitsarath/asarynpersonalfinance.git
 cd asarynpersonalfinance
-```
 
-### 2. Install Dependencies
+# Run setup script
+chmod +x setup.sh
+./setup.sh
 
-```bash
-npm install
-```
-
-### 3. Set Up Environment Variables
-
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and configure the following variables:
-
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/familylegacy?schema=public"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key-change-this-in-production"
-
-# Encryption Key (32 bytes for AES-256)
-# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-ENCRYPTION_KEY="your-secure-random-32-byte-key-in-hex"
-```
-
-**Important**:
-- Generate a secure `NEXTAUTH_SECRET`: `openssl rand -base64 32`
-- Generate a secure `ENCRYPTION_KEY`: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
-- Never commit these secrets to version control
-
-### 4. Set Up Database
-
-```bash
-# Create the database
-createdb familylegacy
-
-# Generate Prisma Client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev --name init
-```
-
-### 5. Run the Development Server
-
-```bash
+# Start the server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open http://localhost:3000 in your browser.
+
+### Manual Setup
+
+See [LOCAL_SETUP.md](./LOCAL_SETUP.md) for detailed manual setup instructions.
+
+### What the Setup Script Does
+
+1. ✅ Checks for Node.js installation
+2. 📦 Installs all dependencies
+3. 🔑 Generates secure encryption keys (NEXTAUTH_SECRET, ENCRYPTION_KEY)
+4. 📄 Creates .env file with SQLite configuration
+5. 🗄️ Sets up database (Prisma generate + migrate)
+6. 🎉 Ready to run!
 
 ## Database Schema
 
@@ -123,16 +105,50 @@ The application uses the following main models:
 - **EmergencyAccess**: Emergency access requests and approvals
 - **AuditLog**: Security audit trail
 
-## API Routes
+## 📁 Project Structure
+
+```
+asarynpersonalfinance/
+├── app/
+│   ├── api/              # API routes
+│   │   ├── auth/         # NextAuth endpoints
+│   │   ├── passwords/    # Password CRUD + reveal endpoint
+│   │   ├── documents/    # Document management
+│   │   └── trusted-contacts/ # Trusted contact management
+│   ├── auth/             # Authentication pages
+│   ├── dashboard/        # Protected dashboard pages
+│   │   ├── passwords/    # Password management UI
+│   │   ├── documents/    # Document management UI
+│   │   ├── trusted-contacts/ # Trusted contacts UI
+│   │   └── audit-logs/   # Audit trail viewer
+│   └── layout.tsx        # Root layout with security headers
+├── lib/
+│   ├── utils/
+│   │   ├── encryption.ts # AES-256-GCM encryption (Node.js crypto)
+│   │   ├── audit.ts      # Audit logging helper
+│   │   ├── request.ts    # IP/User-Agent extraction
+│   │   ├── sanitize.ts   # Input sanitization (XSS prevention)
+│   │   └── auth.ts       # Authentication helpers
+│   └── validations/      # Zod schemas for input validation
+├── prisma/
+│   └── schema.prisma     # Database schema (SQLite/PostgreSQL)
+├── middleware.ts         # Route protection middleware
+├── setup.sh              # Automated setup script
+├── LOCAL_SETUP.md        # Detailed setup guide
+├── SECURITY.md           # Security documentation
+└── .env                  # Environment variables (DO NOT COMMIT)
+```
+
+## 🔌 API Routes
 
 ### Authentication
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/[...nextauth]` - NextAuth.js endpoints
 
 ### Passwords
-- `GET /api/passwords` - List all passwords
+- `GET /api/passwords` - List all passwords (metadata only, NO decrypted passwords)
 - `POST /api/passwords` - Create new password
-- `GET /api/passwords/[id]` - Get specific password
+- `GET /api/passwords/[id]/reveal` - **Reveal decrypted password** (with audit logging)
 - `PUT /api/passwords/[id]` - Update password
 - `DELETE /api/passwords/[id]` - Delete password
 
