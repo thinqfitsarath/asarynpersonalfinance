@@ -8,6 +8,9 @@ import {
   Plus,
   Pause,
   Play,
+  LifeBuoy,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { accessLevel } from '@/lib/categories';
 import { Card } from '@/components/ui/Card';
@@ -46,6 +49,9 @@ export default function TrustedContactsPage() {
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [recoveryCodes, setRecoveryCodes] = useState<Record<string, string>>({});
+  const [generatingCode, setGeneratingCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     fetchContacts();
@@ -105,6 +111,35 @@ export default function TrustedContactsPage() {
     } catch (err) {
       alert('Failed to delete contact');
     }
+  };
+
+  const generateRecoveryCode = async (id: string) => {
+    if (
+      !confirm(
+        'Generate a one-time emergency recovery code for this contact? Any previous code stops working.'
+      )
+    ) {
+      return;
+    }
+    setGeneratingCode(id);
+    try {
+      const response = await fetch(`/api/trusted-contacts/${id}/recovery-code`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      setRecoveryCodes((prev) => ({ ...prev, [id]: data.code }));
+    } catch {
+      alert('Failed to generate recovery code');
+    } finally {
+      setGeneratingCode(null);
+    }
+  };
+
+  const copyRecoveryCode = async (id: string) => {
+    await navigator.clipboard.writeText(recoveryCodes[id]);
+    setCopiedCode(id);
+    setTimeout(() => setCopiedCode(null), 2000);
   };
 
   if (loading) {
@@ -227,6 +262,15 @@ export default function TrustedContactsPage() {
                     )}
                   </Button>
                   <Button
+                    variant="secondary"
+                    className="flex-1 sm:flex-none"
+                    loading={generatingCode === contact.id}
+                    onClick={() => generateRecoveryCode(contact.id)}
+                  >
+                    <LifeBuoy className="h-4 w-4" aria-hidden />
+                    Recovery code
+                  </Button>
+                  <Button
                     variant="destructive"
                     className="flex-1 sm:flex-none"
                     onClick={() => handleDelete(contact.id)}
@@ -235,6 +279,35 @@ export default function TrustedContactsPage() {
                     Remove
                   </Button>
                 </div>
+
+                {recoveryCodes[contact.id] && (
+                  <div className="mt-3 rounded-xl bg-sun-soft p-4">
+                    <p className="mb-2 text-sm font-bold text-sun-deep">
+                      One-time recovery code — hand it to {contact.contactName}{' '}
+                      securely. It won&apos;t be shown again:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="min-h-11 flex-1 content-center rounded-xl bg-surface px-3 py-2 text-center font-mono text-base font-bold tracking-wider text-ink">
+                        {recoveryCodes[contact.id]}
+                      </code>
+                      <button
+                        onClick={() => copyRecoveryCode(contact.id)}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface text-primary-deep"
+                        aria-label="Copy recovery code"
+                      >
+                        {copiedCode === contact.id ? (
+                          <Check className="h-5 w-5 text-leaf-deep" aria-hidden />
+                        ) : (
+                          <Copy className="h-5 w-5" aria-hidden />
+                        )}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-ink-soft">
+                      They can use it at {typeof window !== 'undefined' ? window.location.origin : ''}/emergency if
+                      something happens to you.
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-3 text-xs font-semibold text-ink-faint">
                   Added {new Date(contact.createdAt).toLocaleDateString()}

@@ -14,6 +14,7 @@ import {
 import prisma from '@/lib/prisma';
 import { readableWhere, type FamilyRole } from '@/lib/family';
 import { Card } from '@/components/ui/Card';
+import { EmergencyBanner } from '@/components/EmergencyBanner';
 
 const sections = [
   {
@@ -76,12 +77,36 @@ export default async function DashboardPage() {
     ]);
 
   const counts = [passwordCount, documentCount, contactCount, memberCount];
+
+  const emergencyRequests = await prisma.emergencyAccess.findMany({
+    where: {
+      familyId: familyUser.familyId,
+      status: { in: ['pending', 'approved'] },
+    },
+    orderBy: { requestedAt: 'desc' },
+    select: {
+      id: true,
+      status: true,
+      requestedAt: true,
+      reason: true,
+      contact: { select: { contactName: true } },
+    },
+  });
   const firstName = (session.user.name || session.user.email || '').split(
     ' '
   )[0];
 
   return (
     <div>
+      <EmergencyBanner
+        requests={emergencyRequests.map((r) => ({
+          id: r.id,
+          status: r.status,
+          contactName: r.contact.contactName,
+          requestedAt: r.requestedAt.toISOString(),
+          reason: r.reason,
+        }))}
+      />
       <div className="mb-6">
         <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">
           Hi, {firstName} 👋

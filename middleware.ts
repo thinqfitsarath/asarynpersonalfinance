@@ -11,7 +11,11 @@ export async function middleware(request: NextRequest) {
 
   // Public paths that don't require authentication
   const publicPaths = ['/', '/auth/login', '/auth/register', '/auth/error'];
-  const isPublicPath = publicPaths.includes(pathname) || pathname.startsWith('/api/auth');
+  const isPublicPath =
+    publicPaths.includes(pathname) ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/emergency') ||
+    pathname.startsWith('/api/emergency');
 
   // Check authentication for protected routes
   if (!isPublicPath) {
@@ -32,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Prevent caching of sensitive pages
-  if (pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/emergency')) {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
