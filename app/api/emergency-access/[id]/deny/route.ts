@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
-import { canWrite } from '@/lib/family';
+import { canWrite, type FamilyRole } from '@/lib/family';
 
 // POST /api/emergency-access/[id]/deny — owner/adult denies a request,
 // killing any granted access instantly (the vault re-checks per request).
@@ -13,7 +13,7 @@ export async function POST(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to do this' },
       { status: 403 }

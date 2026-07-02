@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { documentSchema } from '@/lib/validations/document';
-import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
+import { readableWhere, canWrite, type FamilyUser, type FamilyRole } from '@/lib/family';
 
 // GET /api/documents - Get all documents for the current user
 export async function GET(req: Request) {
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to add items' },
       { status: 403 }

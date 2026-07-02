@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { passwordSchema } from '@/lib/validations/password';
 import { encrypt, decrypt } from '@/lib/utils/encryption';
-import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
+import { readableWhere, canWrite, type FamilyUser, type FamilyRole } from '@/lib/family';
 
 // GET /api/passwords/[id] - Get a specific password
 export async function GET(
@@ -63,7 +63,7 @@ export async function PUT(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to edit items' },
       { status: 403 }
@@ -148,7 +148,7 @@ export async function DELETE(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to delete items' },
       { status: 403 }

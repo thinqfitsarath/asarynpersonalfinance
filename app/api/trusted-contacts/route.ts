@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { trustedContactSchema } from '@/lib/validations/trusted-contact';
-import { canWrite } from '@/lib/family';
+import { canWrite, type FamilyRole } from '@/lib/family';
 
 // GET /api/trusted-contacts - Get all trusted contacts for the current user
 export async function GET(req: Request) {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to add contacts' },
       { status: 403 }

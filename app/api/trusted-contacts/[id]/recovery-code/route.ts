@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
-import { canWrite } from '@/lib/family';
+import { canWrite, type FamilyRole } from '@/lib/family';
 import { generateRecoveryCode, sha256 } from '@/lib/utils/codes';
 
 // POST /api/trusted-contacts/[id]/recovery-code
@@ -15,7 +15,7 @@ export async function POST(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to manage contacts' },
       { status: 403 }

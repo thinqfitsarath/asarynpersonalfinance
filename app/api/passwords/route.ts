@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { passwordSchema } from '@/lib/validations/password';
 import { encrypt } from '@/lib/utils/encryption';
-import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
+import { readableWhere, canWrite, type FamilyUser, type FamilyRole } from '@/lib/family';
 
 // GET /api/passwords - Get all passwords visible to the current family member
 // NOTE: Passwords are NOT decrypted in this endpoint for security
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to add items' },
       { status: 403 }

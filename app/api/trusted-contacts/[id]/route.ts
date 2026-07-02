@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { trustedContactSchema } from '@/lib/validations/trusted-contact';
-import { canWrite } from '@/lib/family';
+import { canWrite, type FamilyRole } from '@/lib/family';
 
 // GET /api/trusted-contacts/[id] - Get a specific trusted contact
 export async function GET(
@@ -47,7 +47,7 @@ export async function PUT(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to manage contacts' },
       { status: 403 }
@@ -141,7 +141,7 @@ export async function DELETE(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to manage contacts' },
       { status: 403 }
@@ -199,7 +199,7 @@ export async function PATCH(
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to manage contacts' },
       { status: 403 }

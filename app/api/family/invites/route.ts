@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
-import { canWrite } from '@/lib/family';
+import { canWrite, type FamilyRole } from '@/lib/family';
 import { generateInviteCode, sha256 } from '@/lib/utils/codes';
 
 const INVITE_TTL_HOURS = 48;
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
-  if (!canWrite(user!.role as any)) {
+  if (!canWrite(user!.role as FamilyRole)) {
     return NextResponse.json(
       { error: 'Your account does not have permission to invite members' },
       { status: 403 }
