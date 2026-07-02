@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
+import { DoodleKey, DoodleHeart } from '@/components/illustrations';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,7 +50,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-cream px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="relative mb-8 text-center">
+          <DoodleKey className="anim-float absolute -top-2 left-4 h-9 w-9 sm:left-10" />
+          <DoodleHeart className="anim-float absolute right-4 top-6 h-8 w-8 [animation-delay:1.5s] sm:right-10" />
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-primary text-white">
             <ShieldCheck className="h-8 w-8" aria-hidden />
           </div>

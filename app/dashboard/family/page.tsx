@@ -134,11 +134,15 @@ export default function FamilyPage() {
 
       {/* Members */}
       <div className="space-y-3">
-        {members.map((member) => {
+        {members.map((member, index) => {
           const style = roleStyles[member.role] || roleStyles.ADULT;
           const RoleIcon = style.icon;
           return (
-            <Card key={member.id} className="flex items-center gap-3">
+            <Card
+              key={member.id}
+              className="card-enter flex items-center gap-3"
+              style={{ animationDelay: `${Math.min(index * 60, 360)}ms` }}
+            >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary-deep">
                 <RoleIcon className="h-5 w-5" aria-hidden />
               </span>
@@ -199,7 +203,7 @@ export default function FamilyPage() {
                 aria-label="Copy invite code"
               >
                 {copied === 'code' ? (
-                  <Check className="h-5 w-5 text-leaf-deep" aria-hidden />
+                  <Check className="pop-in h-5 w-5 text-leaf-deep" aria-hidden />
                 ) : (
                   <Copy className="h-5 w-5" aria-hidden />
                 )}

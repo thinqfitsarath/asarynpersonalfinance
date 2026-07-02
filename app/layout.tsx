@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/nunito";
+import "@fontsource-variable/baloo-2";
 import "./globals.css";
 
 export const metadata: Metadata = {

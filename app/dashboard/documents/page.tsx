@@ -12,6 +12,7 @@ import { Alert } from '@/components/ui/Alert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageLoading } from '@/components/ui/Spinner';
+import { SpotDocs } from '@/components/illustrations';
 
 interface Document {
   id: string;
@@ -143,7 +144,7 @@ export default function DocumentsPage() {
 
       {documents.length === 0 ? (
         <EmptyState
-          icon={FileText}
+          art={SpotDocs}
           title="No documents yet"
           description="Get started by adding your first document."
           action={
@@ -155,12 +156,16 @@ export default function DocumentsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {documents.map((document) => {
+          {documents.map((document, index) => {
             const category = documentCategory(document.category);
             const CategoryIcon = category.icon;
 
             return (
-              <Card key={document.id} className="flex flex-col">
+              <Card
+                key={document.id}
+                className="card-enter flex flex-col"
+                style={{ animationDelay: `${Math.min(index * 60, 360)}ms` }}
+              >
                 <div className="mb-3 flex items-start gap-3">
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${category.tileClasses}`}

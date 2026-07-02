@@ -15,6 +15,7 @@ import prisma from '@/lib/prisma';
 import { readableWhere, type FamilyRole } from '@/lib/family';
 import { Card } from '@/components/ui/Card';
 import { EmergencyBanner } from '@/components/EmergencyBanner';
+import { DoodleHeart, DoodleKey, DoodleStar } from '@/components/illustrations';
 
 const sections = [
   {
@@ -107,13 +108,20 @@ export default async function DashboardPage() {
           reason: r.reason,
         }))}
       />
-      <div className="mb-6">
-        <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">
-          Hi, {firstName} 👋
-        </h2>
-        <p className="mt-1 text-ink-soft">
-          Everything your family needs, safe in one place.
-        </p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">
+            Hi, {firstName} 👋
+          </h2>
+          <p className="mt-1 text-ink-soft">
+            Everything your family needs, safe in one place.
+          </p>
+        </div>
+        <div className="relative h-16 w-20 shrink-0" aria-hidden>
+          <DoodleHeart className="anim-float absolute left-0 top-0 h-8 w-8" />
+          <DoodleKey className="anim-float absolute right-0 top-4 h-7 w-7 [animation-delay:1.4s]" />
+          <DoodleStar className="anim-float absolute bottom-0 left-5 h-6 w-6 [animation-delay:2.6s]" />
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

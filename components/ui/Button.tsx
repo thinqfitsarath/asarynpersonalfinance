@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils/cn';
 type Variant = 'primary' | 'secondary' | 'destructive' | 'ghost';
 
 const base =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-base font-bold transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
 
 const variants: Record<Variant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-deep',

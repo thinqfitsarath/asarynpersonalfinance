@@ -25,6 +25,7 @@ import { Alert } from '@/components/ui/Alert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageLoading } from '@/components/ui/Spinner';
+import { SpotKeys } from '@/components/illustrations';
 
 interface Password {
   id: string;
@@ -179,7 +180,7 @@ export default function PasswordsPage() {
 
       {passwords.length === 0 ? (
         <EmptyState
-          icon={KeyRound}
+          art={SpotKeys}
           title="No passwords yet"
           description="Get started by adding your first password."
           action={
@@ -191,14 +192,18 @@ export default function PasswordsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {passwords.map((password) => {
+          {passwords.map((password, index) => {
             const category = passwordCategory(password.category);
             const CategoryIcon = category.icon;
             const revealed = revealedPasswords[password.id];
             const busy = revealingPassword === password.id;
 
             return (
-              <Card key={password.id} className="flex flex-col">
+              <Card
+                key={password.id}
+                className="card-enter flex flex-col"
+                style={{ animationDelay: `${Math.min(index * 60, 360)}ms` }}
+              >
                 <div className="mb-3 flex items-start gap-3">
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${category.tileClasses}`}
@@ -250,7 +255,7 @@ export default function PasswordsPage() {
                         aria-label="Copy password"
                       >
                         {copiedId === password.id ? (
-                          <Check className="h-5 w-5 text-leaf-deep" aria-hidden />
+                          <Check className="pop-in h-5 w-5 text-leaf-deep" aria-hidden />
                         ) : (
                           <Copy className="h-5 w-5" aria-hidden />
                         )}

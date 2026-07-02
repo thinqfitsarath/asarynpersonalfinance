@@ -20,6 +20,7 @@ import { Alert } from '@/components/ui/Alert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageLoading } from '@/components/ui/Spinner';
+import { SpotHands } from '@/components/illustrations';
 
 interface TrustedContact {
   id: string;
@@ -173,7 +174,7 @@ export default function TrustedContactsPage() {
 
       {contacts.length === 0 ? (
         <EmptyState
-          icon={HeartHandshake}
+          art={SpotHands}
           title="No trusted contacts yet"
           description="Add a family member or trusted person for emergency access."
           action={
@@ -185,14 +186,15 @@ export default function TrustedContactsPage() {
         />
       ) : (
         <div className="space-y-3">
-          {contacts.map((contact) => {
+          {contacts.map((contact, index) => {
             const level = accessLevel(contact.accessLevel);
             const LevelIcon = level.icon;
 
             return (
               <Card
                 key={contact.id}
-                className={!contact.isActive ? 'opacity-60' : undefined}
+                className={`card-enter ${!contact.isActive ? 'opacity-60' : ''}`}
+                style={{ animationDelay: `${Math.min(index * 60, 360)}ms` }}
               >
                 <div className="flex items-start gap-3">
                   <span
@@ -296,7 +298,7 @@ export default function TrustedContactsPage() {
                         aria-label="Copy recovery code"
                       >
                         {copiedCode === contact.id ? (
-                          <Check className="h-5 w-5 text-leaf-deep" aria-hidden />
+                          <Check className="pop-in h-5 w-5 text-leaf-deep" aria-hidden />
                         ) : (
                           <Copy className="h-5 w-5" aria-hidden />
                         )}
