@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { documentSchema } from '@/lib/validations/document';
+import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
 
 // GET /api/documents/[id] - Get a specific document
 export async function GET(
@@ -15,8 +16,8 @@ export async function GET(
   try {
     const document = await prisma.document.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -31,6 +32,7 @@ export async function GET(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'view_document',
         entityType: 'document',
         entityId: document.id,
@@ -60,12 +62,19 @@ export async function PUT(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to edit items' },
+      { status: 403 }
+    );
+  }
+
   try {
     // Check if document exists and belongs to user
     const existingDocument = await prisma.document.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -91,6 +100,7 @@ export async function PUT(
         amount: validatedData.amount || null,
         premium: validatedData.premium || null,
         maturityDate: validatedData.maturityDate || null,
+        ...(validatedData.visibility && { visibility: validatedData.visibility }),
       },
     });
 
@@ -98,6 +108,7 @@ export async function PUT(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'update_document',
         entityType: 'document',
         entityId: updatedDocument.id,
@@ -136,12 +147,19 @@ export async function DELETE(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to delete items' },
+      { status: 403 }
+    );
+  }
+
   try {
     // Check if document exists and belongs to user
     const existingDocument = await prisma.document.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -160,6 +178,7 @@ export async function DELETE(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'delete_document',
         entityType: 'document',
         entityId: id,

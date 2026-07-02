@@ -21,6 +21,7 @@ export const documentSchema = z.object({
     error: 'Please select a valid category',
   }),
   title: z.string().min(1, 'Title is required').max(200),
+  visibility: z.enum(['family', 'adults', 'private']).optional(),
   description: z.string().max(1000).optional(),
   documentType: z.enum(documentTypes).optional(),
   provider: z.string().max(200).optional(),

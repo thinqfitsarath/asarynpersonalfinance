@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { passwordSchema } from '@/lib/validations/password';
 import { encrypt, decrypt } from '@/lib/utils/encryption';
+import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
 
 // GET /api/passwords/[id] - Get a specific password
 export async function GET(
@@ -16,8 +17,8 @@ export async function GET(
   try {
     const password = await prisma.password.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -32,6 +33,7 @@ export async function GET(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'view_password',
         entityType: 'password',
         entityId: password.id,
@@ -61,12 +63,19 @@ export async function PUT(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to edit items' },
+      { status: 403 }
+    );
+  }
+
   try {
-    // Check if password exists and belongs to user
+    // Check the password exists and is visible to this member
     const existingPassword = await prisma.password.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -84,7 +93,7 @@ export async function PUT(
     const encryptedPassword = encrypt(validatedData.password);
 
     const updatedPassword = await prisma.password.update({
-      where: { id: id },
+      where: { id },
       data: {
         category: validatedData.category,
         title: validatedData.title,
@@ -92,6 +101,7 @@ export async function PUT(
         encryptedPassword,
         url: validatedData.url || null,
         notes: validatedData.notes || null,
+        ...(validatedData.visibility && { visibility: validatedData.visibility }),
       },
     });
 
@@ -99,6 +109,7 @@ export async function PUT(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'update_password',
         entityType: 'password',
         entityId: updatedPassword.id,
@@ -137,12 +148,19 @@ export async function DELETE(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to delete items' },
+      { status: 403 }
+    );
+  }
+
   try {
-    // Check if password exists and belongs to user
+    // Check the password exists and is visible to this member
     const existingPassword = await prisma.password.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
     });
 
@@ -154,13 +172,14 @@ export async function DELETE(
     }
 
     await prisma.password.delete({
-      where: { id: id },
+      where: { id },
     });
 
     // Log the action
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'delete_password',
         entityType: 'password',
         entityId: id,

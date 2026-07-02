@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { decrypt } from '@/lib/utils/encryption';
 import { createAuditLog } from '@/lib/utils/audit';
+import { readableWhere, type FamilyUser } from '@/lib/family';
 
 // GET /api/passwords/[id]/reveal - Reveal (decrypt) a specific password
 // This endpoint requires authentication and logs every access
@@ -17,8 +18,8 @@ export async function GET(
   try {
     const password = await prisma.password.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        ...readableWhere(user as FamilyUser),
       },
       select: {
         id: true,
@@ -44,7 +45,8 @@ export async function GET(
       'password',
       password.id,
       { title: password.title },
-      req
+      req,
+      user!.familyId
     );
 
     // Return ONLY the decrypted password, nothing else

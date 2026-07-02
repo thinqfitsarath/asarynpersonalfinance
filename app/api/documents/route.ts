@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { documentSchema } from '@/lib/validations/document';
+import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
 
 // GET /api/documents - Get all documents for the current user
 export async function GET(req: Request) {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     const category = searchParams.get('category');
 
     const where = {
-      userId: user!.id,
+      ...readableWhere(user as FamilyUser),
       ...(category && { category }),
     };
 
@@ -21,6 +22,9 @@ export async function GET(req: Request) {
       where,
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        user: { select: { id: true, name: true } },
       },
     });
 
@@ -46,6 +50,13 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to add items' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const validatedData = documentSchema.parse(body);
@@ -53,6 +64,7 @@ export async function POST(req: Request) {
     const document = await prisma.document.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         category: validatedData.category,
         title: validatedData.title,
         description: validatedData.description || null,
@@ -62,6 +74,7 @@ export async function POST(req: Request) {
         amount: validatedData.amount || null,
         premium: validatedData.premium || null,
         maturityDate: validatedData.maturityDate || null,
+        visibility: validatedData.visibility || 'family',
       },
     });
 
@@ -69,6 +82,7 @@ export async function POST(req: Request) {
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'create_document',
         entityType: 'document',
         entityId: document.id,

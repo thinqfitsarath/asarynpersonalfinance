@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { trustedContactSchema } from '@/lib/validations/trusted-contact';
+import { canWrite } from '@/lib/family';
 
 // GET /api/trusted-contacts/[id] - Get a specific trusted contact
 export async function GET(
@@ -15,8 +16,8 @@ export async function GET(
   try {
     const contact = await prisma.trustedContact.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        familyId: user!.familyId,
       },
     });
 
@@ -46,12 +47,19 @@ export async function PUT(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to manage contacts' },
+      { status: 403 }
+    );
+  }
+
   try {
     // Check if contact exists and belongs to user
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        familyId: user!.familyId,
       },
     });
 
@@ -69,7 +77,7 @@ export async function PUT(
     if (validatedData.contactEmail !== existingContact.contactEmail) {
       const emailConflict = await prisma.trustedContact.findFirst({
         where: {
-          userId: user!.id,
+          familyId: user!.familyId,
           contactEmail: validatedData.contactEmail,
           id: { not: id },
         },
@@ -98,6 +106,7 @@ export async function PUT(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'update_trusted_contact',
         entityType: 'trusted_contact',
         entityId: updatedContact.id,
@@ -132,12 +141,19 @@ export async function DELETE(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to manage contacts' },
+      { status: 403 }
+    );
+  }
+
   try {
     // Check if contact exists and belongs to user
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        familyId: user!.familyId,
       },
     });
 
@@ -156,6 +172,7 @@ export async function DELETE(
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'delete_trusted_contact',
         entityType: 'trusted_contact',
         entityId: id,
@@ -182,11 +199,18 @@ export async function PATCH(
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to manage contacts' },
+      { status: 403 }
+    );
+  }
+
   try {
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: id,
-        userId: user!.id,
+        id,
+        familyId: user!.familyId,
       },
     });
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { trustedContactSchema } from '@/lib/validations/trusted-contact';
+import { canWrite } from '@/lib/family';
 
 // GET /api/trusted-contacts - Get all trusted contacts for the current user
 export async function GET(req: Request) {
@@ -11,10 +12,13 @@ export async function GET(req: Request) {
   try {
     const contacts = await prisma.trustedContact.findMany({
       where: {
-        userId: user!.id,
+        familyId: user!.familyId,
       },
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        user: { select: { id: true, name: true } },
       },
     });
 
@@ -33,6 +37,13 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to add contacts' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const validatedData = trustedContactSchema.parse(body);
@@ -40,7 +51,7 @@ export async function POST(req: Request) {
     // Check if contact email already exists for this user
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        userId: user!.id,
+        familyId: user!.familyId,
         contactEmail: validatedData.contactEmail,
       },
     });
@@ -55,6 +66,7 @@ export async function POST(req: Request) {
     const contact = await prisma.trustedContact.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         contactName: validatedData.contactName,
         contactEmail: validatedData.contactEmail,
         relationship: validatedData.relationship,
@@ -67,6 +79,7 @@ export async function POST(req: Request) {
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'create_trusted_contact',
         entityType: 'trusted_contact',
         entityId: contact.id,

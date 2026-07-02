@@ -69,11 +69,28 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
       }
+      // Enrich the token with family info once (also lazily migrates
+      // legacy pre-family accounts by creating a family + backfilling
+      // their data). Guarded so a failure never breaks authentication.
+      if (token.id && !token.familyId) {
+        try {
+          const { ensureFamilyForUser } = await import('@/lib/family');
+          const { familyId, role } = await ensureFamilyForUser(
+            token.id as string
+          );
+          token.familyId = familyId;
+          token.role = role;
+        } catch (error) {
+          console.error('Failed to resolve family for user:', error);
+        }
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.familyId = token.familyId as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

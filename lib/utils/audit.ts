@@ -10,13 +10,15 @@ export async function createAuditLog(
   entityType?: string,
   entityId?: string,
   metadata?: any,
-  request?: Request
+  request?: Request,
+  familyId?: string
 ) {
   const { ipAddress, userAgent } = request ? getRequestMetadata(request) : { ipAddress: null, userAgent: null };
 
   await prisma.auditLog.create({
     data: {
       userId,
+      familyId: familyId || null,
       action,
       entityType: entityType || null,
       entityId: entityId || null,

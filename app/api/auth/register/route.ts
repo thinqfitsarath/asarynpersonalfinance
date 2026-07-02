@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { registerSchema } from '@/lib/validations/auth';
 import { getRequestMetadata } from '@/lib/utils/request';
+import { normalizeCode, sha256 } from '@/lib/utils/codes';
 
 export async function POST(req: Request) {
   try {
@@ -24,34 +25,69 @@ export async function POST(req: Request) {
       );
     }
 
+    // If joining an existing family, resolve the invite first
+    let invite: { id: string; familyId: string; role: string } | null = null;
+    if (validatedData.inviteCode?.trim()) {
+      const codeHash = sha256(normalizeCode(validatedData.inviteCode));
+      const found = await prisma.familyInvite.findUnique({
+        where: { codeHash },
+        select: { id: true, familyId: true, role: true, usedById: true, expiresAt: true },
+      });
+
+      if (!found || found.usedById || found.expiresAt < new Date()) {
+        return NextResponse.json(
+          { error: 'Invalid or expired invite code' },
+          { status: 400 }
+        );
+      }
+      invite = found;
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(validatedData.password, 12);
 
-    // Create the user
-    const user = await prisma.user.create({
-      data: {
-        name: validatedData.name,
-        email: validatedData.email,
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-      },
-    });
+    const user = await prisma.$transaction(async (tx) => {
+      const familyId = invite
+        ? invite.familyId
+        : (await tx.family.create({ data: {} })).id;
 
-    // Log the registration with IP and User-Agent
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: 'register',
-        entityType: 'user',
-        entityId: user.id,
-        ipAddress,
-        userAgent,
-      },
+      const created = await tx.user.create({
+        data: {
+          name: validatedData.name,
+          email: validatedData.email,
+          password: hashedPassword,
+          familyId,
+          role: invite ? invite.role : 'OWNER',
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          familyId: true,
+          createdAt: true,
+        },
+      });
+
+      if (invite) {
+        await tx.familyInvite.update({
+          where: { id: invite.id },
+          data: { usedById: created.id, usedAt: new Date() },
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: created.id,
+          familyId,
+          action: invite ? 'join_family' : 'register',
+          entityType: 'user',
+          entityId: created.id,
+          ipAddress,
+          userAgent,
+        },
+      });
+
+      return created;
     });
 
     return NextResponse.json(

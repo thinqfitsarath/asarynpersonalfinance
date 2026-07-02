@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/utils/session';
 import { passwordSchema } from '@/lib/validations/password';
-import { encrypt, decrypt } from '@/lib/utils/encryption';
+import { encrypt } from '@/lib/utils/encryption';
+import { readableWhere, canWrite, type FamilyUser } from '@/lib/family';
 
-// GET /api/passwords - Get all passwords for the current user
+// GET /api/passwords - Get all passwords visible to the current family member
 // NOTE: Passwords are NOT decrypted in this endpoint for security
 // Use GET /api/passwords/[id]/reveal to decrypt individual passwords
 export async function GET(req: Request) {
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
     const category = searchParams.get('category');
 
     const where = {
-      userId: user!.id,
+      ...readableWhere(user as FamilyUser),
       ...(category && { category }),
     };
 
@@ -32,8 +33,10 @@ export async function GET(req: Request) {
         username: true,
         url: true,
         notes: true,
+        visibility: true,
         createdAt: true,
         updatedAt: true,
+        user: { select: { id: true, name: true } },
         // DO NOT include encryptedPassword
       },
     });
@@ -55,6 +58,13 @@ export async function POST(req: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
 
+  if (!canWrite(user!.role as any)) {
+    return NextResponse.json(
+      { error: 'Your account does not have permission to add items' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const validatedData = passwordSchema.parse(body);
@@ -65,12 +75,14 @@ export async function POST(req: Request) {
     const password = await prisma.password.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         category: validatedData.category,
         title: validatedData.title,
         username: validatedData.username || null,
         encryptedPassword,
         url: validatedData.url || null,
         notes: validatedData.notes || null,
+        visibility: validatedData.visibility || 'family',
       },
     });
 
@@ -78,6 +90,7 @@ export async function POST(req: Request) {
     await prisma.auditLog.create({
       data: {
         userId: user!.id,
+        familyId: user!.familyId,
         action: 'create_password',
         entityType: 'password',
         entityId: password.id,

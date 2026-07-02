@@ -15,6 +15,7 @@ export const passwordSchema = z.object({
     error: 'Please select a valid category',
   }),
   title: z.string().min(1, 'Title is required').max(200),
+  visibility: z.enum(['family', 'adults', 'private']).optional(),
   username: z.string().optional(),
   password: z.string().min(1, 'Password is required'),
   url: z.string().url('Invalid URL').optional().or(z.literal('')),

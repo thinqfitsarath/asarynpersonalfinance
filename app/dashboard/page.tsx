@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import prisma from '@/lib/prisma';
+import { readableWhere, type FamilyRole } from '@/lib/family';
 import { Card } from '@/components/ui/Card';
 
 const sections = [
@@ -53,10 +54,16 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
+  const familyUser = {
+    id: session.user.id,
+    familyId: session.user.familyId,
+    role: session.user.role as FamilyRole,
+  };
+
   const [passwordCount, documentCount, contactCount] = await Promise.all([
-    prisma.password.count({ where: { userId: session.user.id } }),
-    prisma.document.count({ where: { userId: session.user.id } }),
-    prisma.trustedContact.count({ where: { userId: session.user.id } }),
+    prisma.password.count({ where: readableWhere(familyUser) }),
+    prisma.document.count({ where: readableWhere(familyUser) }),
+    prisma.trustedContact.count({ where: { familyId: familyUser.familyId } }),
   ]);
 
   const counts = [passwordCount, documentCount, contactCount];
