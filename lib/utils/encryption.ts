@@ -12,15 +12,23 @@ const IV_LENGTH = 16; // 128 bits
 const AUTH_TAG_LENGTH = 16; // 128 bits
 const SALT_LENGTH = 32; // 256 bits
 
-// Validate encryption key on module load
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
+/**
+ * Reads and validates the encryption key lazily (at call time, not module load
+ * time). This keeps `next build` from failing when the key is only injected
+ * into the runtime/functions environment and not the build environment.
+ */
+function getEncryptionKey(): string {
+  const key = process.env.ENCRYPTION_KEY || '';
 
-if (!ENCRYPTION_KEY) {
-  throw new Error('CRITICAL: ENCRYPTION_KEY environment variable is not set. Application cannot start without encryption key.');
-}
+  if (!key) {
+    throw new Error('CRITICAL: ENCRYPTION_KEY environment variable is not set. Application cannot start without encryption key.');
+  }
 
-if (ENCRYPTION_KEY.length < 32) {
-  throw new Error('CRITICAL: ENCRYPTION_KEY must be at least 32 characters (256 bits). Generate with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+  if (key.length < 32) {
+    throw new Error('CRITICAL: ENCRYPTION_KEY must be at least 32 characters (256 bits). Generate with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+  }
+
+  return key;
 }
 
 /**
@@ -39,10 +47,7 @@ function deriveKeyFromPassword(password: string, salt: Buffer): Buffer {
  */
 export function encrypt(text: string, customKey?: string): string {
   try {
-    const key = customKey || ENCRYPTION_KEY;
-    if (!key) {
-      throw new Error('Encryption key not available');
-    }
+    const key = customKey || getEncryptionKey();
 
     // Generate random salt and IV
     const salt = crypto.randomBytes(SALT_LENGTH);
@@ -85,10 +90,7 @@ export function encrypt(text: string, customKey?: string): string {
  */
 export function decrypt(encryptedText: string, customKey?: string): string {
   try {
-    const key = customKey || ENCRYPTION_KEY;
-    if (!key) {
-      throw new Error('Decryption key not available');
-    }
+    const key = customKey || getEncryptionKey();
 
     // Parse encrypted data
     const parts = encryptedText.split(':');
