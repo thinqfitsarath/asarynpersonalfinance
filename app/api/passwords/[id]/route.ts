@@ -7,15 +7,16 @@ import { encrypt, decrypt } from '@/lib/utils/encryption';
 // GET /api/passwords/[id] - Get a specific password
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
   try {
     const password = await prisma.password.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -54,8 +55,9 @@ export async function GET(
 // PUT /api/passwords/[id] - Update a password
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -63,7 +65,7 @@ export async function PUT(
     // Check if password exists and belongs to user
     const existingPassword = await prisma.password.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -82,7 +84,7 @@ export async function PUT(
     const encryptedPassword = encrypt(validatedData.password);
 
     const updatedPassword = await prisma.password.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         category: validatedData.category,
         title: validatedData.title,
@@ -129,8 +131,9 @@ export async function PUT(
 // DELETE /api/passwords/[id] - Delete a password
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -138,7 +141,7 @@ export async function DELETE(
     // Check if password exists and belongs to user
     const existingPassword = await prisma.password.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -151,7 +154,7 @@ export async function DELETE(
     }
 
     await prisma.password.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     // Log the action
@@ -160,7 +163,7 @@ export async function DELETE(
         userId: user!.id,
         action: 'delete_password',
         entityType: 'password',
-        entityId: params.id,
+        entityId: id,
         metadata: JSON.stringify({ title: existingPassword.title }),
       },
     });

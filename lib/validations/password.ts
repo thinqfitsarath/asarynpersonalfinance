@@ -12,7 +12,7 @@ export const passwordCategories = [
 
 export const passwordSchema = z.object({
   category: z.enum(passwordCategories, {
-    errorMap: () => ({ message: 'Please select a valid category' }),
+    error: 'Please select a valid category',
   }),
   title: z.string().min(1, 'Title is required').max(200),
   username: z.string().optional(),

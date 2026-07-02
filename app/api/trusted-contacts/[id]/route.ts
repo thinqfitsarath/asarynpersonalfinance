@@ -6,15 +6,16 @@ import { trustedContactSchema } from '@/lib/validations/trusted-contact';
 // GET /api/trusted-contacts/[id] - Get a specific trusted contact
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
   try {
     const contact = await prisma.trustedContact.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -39,8 +40,9 @@ export async function GET(
 // PUT /api/trusted-contacts/[id] - Update a trusted contact
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -48,7 +50,7 @@ export async function PUT(
     // Check if contact exists and belongs to user
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -69,7 +71,7 @@ export async function PUT(
         where: {
           userId: user!.id,
           contactEmail: validatedData.contactEmail,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -82,7 +84,7 @@ export async function PUT(
     }
 
     const updatedContact = await prisma.trustedContact.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         contactName: validatedData.contactName,
         contactEmail: validatedData.contactEmail,
@@ -124,8 +126,9 @@ export async function PUT(
 // DELETE /api/trusted-contacts/[id] - Delete a trusted contact
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -133,7 +136,7 @@ export async function DELETE(
     // Check if contact exists and belongs to user
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -146,7 +149,7 @@ export async function DELETE(
     }
 
     await prisma.trustedContact.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     // Log the action
@@ -155,7 +158,7 @@ export async function DELETE(
         userId: user!.id,
         action: 'delete_trusted_contact',
         entityType: 'trusted_contact',
-        entityId: params.id,
+        entityId: id,
         metadata: JSON.stringify({ contactName: existingContact.contactName }),
       },
     });
@@ -173,15 +176,16 @@ export async function DELETE(
 // PATCH /api/trusted-contacts/[id] - Toggle active status
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
   try {
     const existingContact = await prisma.trustedContact.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -194,7 +198,7 @@ export async function PATCH(
     }
 
     const updatedContact = await prisma.trustedContact.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         isActive: !existingContact.isActive,
       },

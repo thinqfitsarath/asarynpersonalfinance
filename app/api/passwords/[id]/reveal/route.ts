@@ -8,15 +8,16 @@ import { createAuditLog } from '@/lib/utils/audit';
 // This endpoint requires authentication and logs every access
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
   try {
     const password = await prisma.password.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
       select: {

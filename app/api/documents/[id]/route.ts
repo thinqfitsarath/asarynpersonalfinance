@@ -6,15 +6,16 @@ import { documentSchema } from '@/lib/validations/document';
 // GET /api/documents/[id] - Get a specific document
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
   try {
     const document = await prisma.document.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -53,8 +54,9 @@ export async function GET(
 // PUT /api/documents/[id] - Update a document
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -62,7 +64,7 @@ export async function PUT(
     // Check if document exists and belongs to user
     const existingDocument = await prisma.document.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -78,7 +80,7 @@ export async function PUT(
     const validatedData = documentSchema.parse(body);
 
     const updatedDocument = await prisma.document.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         category: validatedData.category,
         title: validatedData.title,
@@ -128,8 +130,9 @@ export async function PUT(
 // DELETE /api/documents/[id] - Delete a document
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -137,7 +140,7 @@ export async function DELETE(
     // Check if document exists and belongs to user
     const existingDocument = await prisma.document.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user!.id,
       },
     });
@@ -150,7 +153,7 @@ export async function DELETE(
     }
 
     await prisma.document.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     // Log the action
@@ -159,7 +162,7 @@ export async function DELETE(
         userId: user!.id,
         action: 'delete_document',
         entityType: 'document',
-        entityId: params.id,
+        entityId: id,
         metadata: JSON.stringify({ title: existingDocument.title }),
       },
     });

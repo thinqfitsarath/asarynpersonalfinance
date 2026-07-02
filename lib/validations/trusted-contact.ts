@@ -21,10 +21,10 @@ export const trustedContactSchema = z.object({
   contactName: z.string().min(2, 'Name must be at least 2 characters').max(200),
   contactEmail: z.string().email('Invalid email address'),
   relationship: z.enum(relationshipTypes, {
-    errorMap: () => ({ message: 'Please select a valid relationship' }),
+    error: 'Please select a valid relationship',
   }),
   accessLevel: z.enum(accessLevels, {
-    errorMap: () => ({ message: 'Please select a valid access level' }),
+    error: 'Please select a valid access level',
   }),
   delayDays: z
     .number()
