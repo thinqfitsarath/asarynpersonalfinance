@@ -2,7 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Label } from '@/components/ui/Label';
+import { Button, LinkButton } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageLoading } from '@/components/ui/Spinner';
+
+const relationships = [
+  { value: 'spouse', label: 'Spouse' },
+  { value: 'child', label: 'Child' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'sibling', label: 'Sibling' },
+  { value: 'lawyer', label: 'Lawyer' },
+  { value: 'executor', label: 'Executor' },
+  { value: 'trusted_friend', label: 'Trusted Friend' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function EditTrustedContactPage() {
   const params = useParams<{ id: string }>();
@@ -83,167 +101,131 @@ export default function EditTrustedContactPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-gray-600">Loading trusted contact...</div>
-      </div>
-    );
+    return <PageLoading label="Loading trusted contact…" />;
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <Link
-          href="/dashboard/trusted-contacts"
-          className="text-sm text-indigo-600 hover:text-indigo-500"
-        >
-          ← Back to trusted contacts
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Edit Trusted Contact</h1>
-        <p className="mt-2 text-gray-600">
-          Update trusted contact information
-        </p>
-      </div>
+    <div className="mx-auto max-w-xl">
+      <PageHeader
+        title="Edit trusted contact"
+        description="Update trusted contact information"
+        backHref="/dashboard/trusted-contacts"
+        backLabel="Trusted contacts"
+      />
 
-      <div className="rounded-lg bg-white p-8 shadow">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.submit && (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
-              {errors.submit}
-            </div>
-          )}
+      <Card className="p-5 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {errors.submit && <Alert tone="error">{errors.submit}</Alert>}
 
           <div>
-            <label htmlFor="contactName" className="block text-sm font-medium text-gray-700">
-              Contact Name *
-            </label>
-            <input
+            <Label htmlFor="contactName">Contact name *</Label>
+            <Input
               id="contactName"
               type="text"
               required
               maxLength={200}
               value={formData.contactName}
+              error={errors.contactName}
               onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="Full name"
             />
-            {errors.contactName && (
-              <p className="mt-1 text-sm text-red-600">{errors.contactName}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700">
-              Email Address *
-            </label>
-            <input
+            <Label htmlFor="contactEmail">Email address *</Label>
+            <Input
               id="contactEmail"
               type="email"
               required
               value={formData.contactEmail}
+              error={errors.contactEmail}
               onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="contact@example.com"
             />
-            {errors.contactEmail && (
-              <p className="mt-1 text-sm text-red-600">{errors.contactEmail}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="relationship" className="block text-sm font-medium text-gray-700">
-              Relationship *
-            </label>
-            <select
+            <Label htmlFor="relationship">Relationship *</Label>
+            <Select
               id="relationship"
               required
               value={formData.relationship}
+              error={errors.relationship}
               onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
-              <option value="spouse">Spouse</option>
-              <option value="child">Child</option>
-              <option value="parent">Parent</option>
-              <option value="sibling">Sibling</option>
-              <option value="lawyer">Lawyer</option>
-              <option value="executor">Executor</option>
-              <option value="trusted_friend">Trusted Friend</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.relationship && (
-              <p className="mt-1 text-sm text-red-600">{errors.relationship}</p>
-            )}
+              {relationships.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <div>
-            <label htmlFor="accessLevel" className="block text-sm font-medium text-gray-700">
-              Access Level *
-            </label>
-            <select
+            <Label htmlFor="accessLevel">Access level *</Label>
+            <Select
               id="accessLevel"
               required
               value={formData.accessLevel}
+              error={errors.accessLevel}
               onChange={(e) => setFormData({ ...formData, accessLevel: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="emergency-only">Emergency Only (Recommended)</option>
               <option value="view-only">View Only</option>
               <option value="full">Full Access</option>
-            </select>
-            {errors.accessLevel && (
-              <p className="mt-1 text-sm text-red-600">{errors.accessLevel}</p>
-            )}
-            <p className="mt-2 text-sm text-gray-500">
-              <strong>Emergency Only:</strong> Access only during emergencies with time delay
-              <br />
-              <strong>View Only:</strong> Can view but not modify your information
-              <br />
-              <strong>Full Access:</strong> Can view and manage all information
-            </p>
+            </Select>
+            <div className="mt-2 space-y-1 text-sm text-ink-faint">
+              <p>
+                <strong className="text-ink-soft">Emergency only:</strong>{' '}
+                access only during emergencies, with a time delay
+              </p>
+              <p>
+                <strong className="text-ink-soft">View only:</strong> can view
+                but not modify your information
+              </p>
+              <p>
+                <strong className="text-ink-soft">Full access:</strong> can
+                view and manage all information
+              </p>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="delayDays" className="block text-sm font-medium text-gray-700">
-              Access Delay (Days) *
-            </label>
-            <input
+            <Label htmlFor="delayDays">Access delay (days) *</Label>
+            <Input
               id="delayDays"
               type="number"
               required
-              min="0"
-              max="365"
+              min={0}
+              max={365}
               value={formData.delayDays}
+              error={errors.delayDays}
               onChange={(e) =>
                 setFormData({ ...formData, delayDays: parseInt(e.target.value) })
               }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs"
+              className="sm:max-w-xs"
             />
-            {errors.delayDays && (
-              <p className="mt-1 text-sm text-red-600">{errors.delayDays}</p>
-            )}
-            <p className="mt-2 text-sm text-gray-500">
-              Number of days before emergency access is granted after a request. You will be
-              notified and can deny the request during this period. Recommended: 7 days.
+            <p className="mt-2 text-sm text-ink-faint">
+              Days before emergency access is granted after a request. You will
+              be notified and can deny it during this period. Recommended: 7
+              days.
             </p>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Update Trusted Contact'}
-            </button>
-            <Link
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+            <LinkButton
               href="/dashboard/trusted-contacts"
-              className="flex-1 rounded-md bg-white px-4 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              variant="secondary"
+              className="sm:flex-1"
             >
               Cancel
-            </Link>
+            </LinkButton>
+            <Button type="submit" loading={saving} className="sm:flex-1">
+              {saving ? 'Saving…' : 'Update contact'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

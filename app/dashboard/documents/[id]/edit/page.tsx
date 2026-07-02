@@ -2,7 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { DOCUMENT_CATEGORIES } from '@/lib/categories';
+import { Card } from '@/components/ui/Card';
+import { Input, fieldClasses } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Button, LinkButton } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageLoading } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils/cn';
+
+const documentTypes = [
+  'policy',
+  'deed',
+  'certificate',
+  'statement',
+  'contract',
+  'other',
+];
 
 export default function EditDocumentPage() {
   const params = useParams<{ id: string }>();
@@ -100,162 +119,118 @@ export default function EditDocumentPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-gray-600">Loading document...</div>
-      </div>
-    );
+    return <PageLoading label="Loading document…" />;
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <Link
-          href="/dashboard/documents"
-          className="text-sm text-indigo-600 hover:text-indigo-500"
-        >
-          ← Back to documents
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Edit Document</h1>
-        <p className="mt-2 text-gray-600">
-          Update your document information
-        </p>
-      </div>
+    <div className="mx-auto max-w-xl">
+      <PageHeader
+        title="Edit document"
+        description="Update your document information"
+        backHref="/dashboard/documents"
+        backLabel="Documents"
+      />
 
-      <div className="rounded-lg bg-white p-8 shadow">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.submit && (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
-              {errors.submit}
-            </div>
-          )}
+      <Card className="p-5 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {errors.submit && <Alert tone="error">{errors.submit}</Alert>}
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                Category *
-              </label>
-              <select
+              <Label htmlFor="category">Category *</Label>
+              <Select
                 id="category"
                 required
                 value={formData.category}
+                error={errors.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
-                <option value="investment">Investment</option>
-                <option value="insurance">Insurance</option>
-                <option value="house">House</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-              )}
+                {Object.entries(DOCUMENT_CATEGORIES).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
             </div>
 
             <div>
-              <label htmlFor="documentType" className="block text-sm font-medium text-gray-700">
-                Document Type
-              </label>
-              <select
+              <Label htmlFor="documentType">Document type</Label>
+              <Select
                 id="documentType"
                 value={formData.documentType}
                 onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
-                <option value="policy">Policy</option>
-                <option value="deed">Deed</option>
-                <option value="certificate">Certificate</option>
-                <option value="statement">Statement</option>
-                <option value="contract">Contract</option>
-                <option value="other">Other</option>
-              </select>
+                {documentTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </Select>
             </div>
           </div>
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Title *
-            </label>
-            <input
+            <Label htmlFor="title">Title *</Label>
+            <Input
               id="title"
               type="text"
               required
               maxLength={200}
               value={formData.title}
+              error={errors.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              placeholder="e.g., Life Insurance Policy, Investment Account"
+              placeholder="e.g., Life Insurance Policy"
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
+            <Label htmlFor="description">Description</Label>
+            <Textarea
               id="description"
               rows={3}
               maxLength={1000}
               value={formData.description}
+              error={errors.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="Brief description of the document"
             />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-            )}
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="provider" className="block text-sm font-medium text-gray-700">
-                Provider / Company
-              </label>
-              <input
+              <Label htmlFor="provider">Provider / Company</Label>
+              <Input
                 id="provider"
                 type="text"
                 maxLength={200}
                 value={formData.provider}
+                error={errors.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="e.g., State Farm, Vanguard"
               />
-              {errors.provider && (
-                <p className="mt-1 text-sm text-red-600">{errors.provider}</p>
-              )}
             </div>
 
             <div>
-              <label htmlFor="policyNumber" className="block text-sm font-medium text-gray-700">
-                Policy / Reference Number
-              </label>
-              <input
+              <Label htmlFor="policyNumber">Policy / Reference number</Label>
+              <Input
                 id="policyNumber"
                 type="text"
                 maxLength={100}
                 value={formData.policyNumber}
+                error={errors.policyNumber}
                 onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Policy or account number"
               />
-              {errors.policyNumber && (
-                <p className="mt-1 text-sm text-red-600">{errors.policyNumber}</p>
-              )}
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                Amount / Coverage
-              </label>
-              <div className="relative mt-1">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <span className="text-gray-500 sm:text-sm">$</span>
-                </div>
+              <Label htmlFor="amount">Amount / Coverage</Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-bold text-ink-faint">
+                  $
+                </span>
                 <input
                   id="amount"
                   type="number"
@@ -263,23 +238,23 @@ export default function EditDocumentPage() {
                   min="0"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 pl-7 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={cn(fieldClasses, 'pl-8')}
                   placeholder="0.00"
                 />
               </div>
               {errors.amount && (
-                <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
+                <p className="mt-1.5 text-sm font-semibold text-danger-deep">
+                  {errors.amount}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="premium" className="block text-sm font-medium text-gray-700">
-                Premium / Monthly Payment
-              </label>
-              <div className="relative mt-1">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <span className="text-gray-500 sm:text-sm">$</span>
-                </div>
+              <Label htmlFor="premium">Premium / Monthly payment</Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-bold text-ink-faint">
+                  $
+                </span>
                 <input
                   id="premium"
                   type="number"
@@ -287,49 +262,44 @@ export default function EditDocumentPage() {
                   min="0"
                   value={formData.premium}
                   onChange={(e) => setFormData({ ...formData, premium: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 pl-7 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className={cn(fieldClasses, 'pl-8')}
                   placeholder="0.00"
                 />
               </div>
               {errors.premium && (
-                <p className="mt-1 text-sm text-red-600">{errors.premium}</p>
+                <p className="mt-1.5 text-sm font-semibold text-danger-deep">
+                  {errors.premium}
+                </p>
               )}
             </div>
           </div>
 
           <div>
-            <label htmlFor="maturityDate" className="block text-sm font-medium text-gray-700">
-              Maturity / Expiration Date
-            </label>
-            <input
+            <Label htmlFor="maturityDate">Maturity / Expiration date</Label>
+            <Input
               id="maturityDate"
               type="date"
               value={formData.maturityDate}
+              error={errors.maturityDate}
               onChange={(e) => setFormData({ ...formData, maturityDate: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs"
+              className="sm:max-w-xs"
             />
-            {errors.maturityDate && (
-              <p className="mt-1 text-sm text-red-600">{errors.maturityDate}</p>
-            )}
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Update Document'}
-            </button>
-            <Link
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+            <LinkButton
               href="/dashboard/documents"
-              className="flex-1 rounded-md bg-white px-4 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              variant="secondary"
+              className="sm:flex-1"
             >
               Cancel
-            </Link>
+            </LinkButton>
+            <Button type="submit" loading={saving} className="sm:flex-1">
+              {saving ? 'Saving…' : 'Update document'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

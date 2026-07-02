@@ -1,27 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Warm friendly palette — light only */
+  --color-cream: #fbf6ee;
+  --color-cream-deep: #f5eddf;
+  --color-surface: #ffffff;
+  --color-sand: #ebdfcc;
+  --color-sand-strong: #d9c9ae;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Arial, sans-serif;
+  --color-ink: #3e3833;
+  --color-ink-soft: #736a5e;
+  --color-ink-faint: #a2988a;
+
+  --color-primary: #0e9384;
+  --color-primary-deep: #0a756a;
+  --color-primary-soft: #d6f0ec;
+
+  --color-coral: #f0705a;
+  --color-coral-deep: #d95940;
+  --color-coral-soft: #fce4de;
+
+  --color-sun: #f2a93b;
+  --color-sun-deep: #c77f19;
+  --color-sun-soft: #fbeed3;
+
+  --color-danger: #d8514a;
+  --color-danger-deep: #b93d37;
+  --color-danger-soft: #fadfdc;
+
+  --color-leaf: #5a9e6f;
+  --color-leaf-deep: #3f7d53;
+  --color-leaf-soft: #ddefe2;
+
+  --color-sky: #4a93c8;
+  --color-sky-deep: #33739f;
+  --color-sky-soft: #ddebf6;
+
+  --color-plum: #8b6fc0;
+  --color-plum-deep: #6d539e;
+  --color-plum-soft: #e9e2f6;
+
+  --font-sans: "Nunito Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
 }

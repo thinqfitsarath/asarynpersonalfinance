@@ -2,7 +2,49 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import {
+  KeyRound,
+  FileText,
+  HeartHandshake,
+  Plus,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
 import prisma from '@/lib/prisma';
+import { Card } from '@/components/ui/Card';
+
+const sections = [
+  {
+    href: '/dashboard/passwords',
+    label: 'Passwords',
+    icon: KeyRound,
+    tile: 'bg-primary-soft text-primary-deep',
+  },
+  {
+    href: '/dashboard/documents',
+    label: 'Documents',
+    icon: FileText,
+    tile: 'bg-sun-soft text-sun-deep',
+  },
+  {
+    href: '/dashboard/trusted-contacts',
+    label: 'Trusted Contacts',
+    icon: HeartHandshake,
+    tile: 'bg-coral-soft text-coral-deep',
+  },
+];
+
+const quickActions = [
+  { href: '/dashboard/passwords/new', label: 'Add a password' },
+  { href: '/dashboard/documents/new', label: 'Add a document' },
+  { href: '/dashboard/trusted-contacts/new', label: 'Add a trusted contact' },
+];
+
+const tips = [
+  'Use strong, unique passwords for each account',
+  'Regularly update important document information',
+  'Keep your trusted contacts list up to date',
+];
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -11,152 +53,85 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
-  // Fetch counts for dashboard overview
   const [passwordCount, documentCount, contactCount] = await Promise.all([
     prisma.password.count({ where: { userId: session.user.id } }),
     prisma.document.count({ where: { userId: session.user.id } }),
     prisma.trustedContact.count({ where: { userId: session.user.id } }),
   ]);
 
+  const counts = [passwordCount, documentCount, contactCount];
+  const firstName = (session.user.name || session.user.email || '').split(
+    ' '
+  )[0];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between">
-            <div className="flex">
-              <div className="flex flex-shrink-0 items-center">
-                <h1 className="text-xl font-bold text-gray-900">
-                  Family Legacy Manager
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700">
-                {session.user.name || session.user.email}
+    <div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">
+          Hi, {firstName} 👋
+        </h2>
+        <p className="mt-1 text-ink-soft">
+          Everything your family needs, safe in one place.
+        </p>
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {sections.map(({ href, label, icon: Icon, tile }, i) => (
+          <Link key={href} href={href}>
+            <Card className="flex items-center gap-4 transition-colors hover:border-sand-strong">
+              <span
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tile}`}
+              >
+                <Icon className="h-6 w-6" aria-hidden />
               </span>
-            </div>
-          </div>
-        </div>
-      </nav>
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-ink-soft">
+                  {label}
+                </span>
+                <span className="block text-2xl font-extrabold text-ink">
+                  {counts[i]}
+                </span>
+              </span>
+              <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden />
+            </Card>
+          </Link>
+        ))}
+      </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-          <p className="mt-2 text-gray-600">
-            Manage your passwords, documents, and trusted contacts
-          </p>
-        </div>
-
-        <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Passwords</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
-                  {passwordCount}
-                </p>
-              </div>
-              <div className="text-4xl">🔐</div>
-            </div>
-            <Link
-              href="/dashboard/passwords"
-              className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              View all →
-            </Link>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Documents</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
-                  {documentCount}
-                </p>
-              </div>
-              <div className="text-4xl">📄</div>
-            </div>
-            <Link
-              href="/dashboard/documents"
-              className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              View all →
-            </Link>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Trusted Contacts
-                </p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
-                  {contactCount}
-                </p>
-              </div>
-              <div className="text-4xl">👨‍👩‍👧‍👦</div>
-            </div>
-            <Link
-              href="/dashboard/trusted-contacts"
-              className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Manage →
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Card>
+          <h3 className="mb-3 text-lg font-extrabold text-ink">
+            Quick actions
+          </h3>
+          <div className="space-y-2">
+            {quickActions.map(({ href, label }) => (
               <Link
-                href="/dashboard/passwords/new"
-                className="block rounded-md bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                key={href}
+                href={href}
+                className="flex min-h-12 items-center gap-2.5 rounded-xl bg-primary-soft px-4 font-bold text-primary-deep transition-colors hover:bg-primary hover:text-white"
               >
-                + Add New Password
+                <Plus className="h-5 w-5" aria-hidden />
+                {label}
               </Link>
-              <Link
-                href="/dashboard/documents/new"
-                className="block rounded-md bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
-              >
-                + Add New Document
-              </Link>
-              <Link
-                href="/dashboard/trusted-contacts/new"
-                className="block rounded-md bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
-              >
-                + Add Trusted Contact
-              </Link>
-            </div>
+            ))}
           </div>
+        </Card>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Security Tips
-            </h3>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="mr-2">✓</span>
-                <span>Use strong, unique passwords for each account</span>
+        <Card>
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-ink">
+            <Sparkles className="h-5 w-5 text-sun-deep" aria-hidden />
+            Good habits
+          </h3>
+          <ul className="space-y-2.5">
+            {tips.map((tip) => (
+              <li key={tip} className="flex items-start gap-2.5 text-ink-soft">
+                <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-sun" />
+                {tip}
               </li>
-              <li className="flex items-start">
-                <span className="mr-2">✓</span>
-                <span>Regularly update important document information</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">✓</span>
-                <span>Keep your trusted contacts list up to date</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">✓</span>
-                <span>Review audit logs periodically for suspicious activity</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </main>
+            ))}
+          </ul>
+        </Card>
+      </div>
     </div>
   );
 }

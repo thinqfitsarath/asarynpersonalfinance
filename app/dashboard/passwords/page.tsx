@@ -2,7 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import {
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  KeyRound,
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  ExternalLink,
+} from 'lucide-react';
+import { passwordCategory, PASSWORD_CATEGORIES } from '@/lib/categories';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Button, LinkButton } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Label } from '@/components/ui/Label';
+import { Alert } from '@/components/ui/Alert';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageLoading } from '@/components/ui/Spinner';
 
 interface Password {
   id: string;
@@ -15,24 +36,14 @@ interface Password {
   updatedAt: string;
 }
 
-const categoryColors: Record<string, string> = {
-  bank: 'bg-green-100 text-green-800',
-  email: 'bg-blue-100 text-blue-800',
-  phone: 'bg-purple-100 text-purple-800',
-  laptop: 'bg-gray-100 text-gray-800',
-  investment: 'bg-yellow-100 text-yellow-800',
-  google: 'bg-red-100 text-red-800',
-  other: 'bg-indigo-100 text-indigo-800',
-};
-
 export default function PasswordsPage() {
-  const router = useRouter();
   const [passwords, setPasswords] = useState<Password[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('');
   const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
   const [revealingPassword, setRevealingPassword] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPasswords();
@@ -78,6 +89,17 @@ export default function PasswordsPage() {
     }
   };
 
+  const revealPassword = async (id: string): Promise<string | null> => {
+    if (revealedPasswords[id]) return revealedPasswords[id];
+
+    const response = await fetch(`/api/passwords/${id}/reveal`);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    setRevealedPasswords((prev) => ({ ...prev, [id]: data.password }));
+    return data.password;
+  };
+
   const togglePasswordVisibility = async (id: string) => {
     // If already revealed, hide it
     if (revealedPasswords[id]) {
@@ -87,20 +109,10 @@ export default function PasswordsPage() {
       return;
     }
 
-    // Otherwise, fetch and reveal the password
     setRevealingPassword(id);
     try {
-      const response = await fetch(`/api/passwords/${id}/reveal`);
-
-      if (!response.ok) {
-        throw new Error('Failed to reveal password');
-      }
-
-      const data = await response.json();
-      setRevealedPasswords({
-        ...revealedPasswords,
-        [id]: data.password,
-      });
+      const password = await revealPassword(id);
+      if (password === null) throw new Error('Failed to reveal password');
     } catch (err) {
       alert('Failed to reveal password');
     } finally {
@@ -108,184 +120,193 @@ export default function PasswordsPage() {
     }
   };
 
+  const copyPassword = async (id: string) => {
+    setRevealingPassword(id);
+    try {
+      const password = await revealPassword(id);
+      if (password === null) throw new Error('Failed to fetch password');
+      await navigator.clipboard.writeText(password);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      alert('Failed to copy password');
+    } finally {
+      setRevealingPassword(null);
+    }
+  };
+
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-gray-600">Loading passwords...</div>
-      </div>
-    );
+    return <PageLoading label="Loading passwords…" />;
   }
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Password Vault</h1>
-          <p className="mt-2 text-gray-600">
-            Securely manage all your passwords in one place
-          </p>
-        </div>
-        <Link
-          href="/dashboard/passwords/new"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Password
-        </Link>
-      </div>
+      <PageHeader
+        title="Passwords"
+        description="All your family's logins, safe in one place"
+        action={
+          <LinkButton href="/dashboard/passwords/new">
+            <Plus className="h-5 w-5" aria-hidden />
+            Add
+          </LinkButton>
+        }
+      />
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">
+        <Alert tone="error" className="mb-4">
           {error}
-        </div>
+        </Alert>
       )}
 
-      <div className="mb-6">
-        <label htmlFor="filter" className="block text-sm font-medium text-gray-700">
-          Filter by category
-        </label>
-        <select
+      <div className="mb-6 max-w-xs">
+        <Label htmlFor="filter">Filter by category</Label>
+        <Select
           id="filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm"
         >
           <option value="">All categories</option>
-          <option value="bank">Bank</option>
-          <option value="email">Email</option>
-          <option value="phone">Phone</option>
-          <option value="laptop">Laptop</option>
-          <option value="investment">Investment</option>
-          <option value="google">Google</option>
-          <option value="other">Other</option>
-        </select>
+          {Object.entries(PASSWORD_CATEGORIES).map(([key, { label }]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {passwords.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No passwords</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by creating a new password entry.
-          </p>
-          <div className="mt-6">
-            <Link
-              href="/dashboard/passwords/new"
-              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-            >
-              Add Password
-            </Link>
-          </div>
-        </div>
+        <EmptyState
+          icon={KeyRound}
+          title="No passwords yet"
+          description="Get started by adding your first password."
+          action={
+            <LinkButton href="/dashboard/passwords/new">
+              <Plus className="h-5 w-5" aria-hidden />
+              Add password
+            </LinkButton>
+          }
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {passwords.map((password) => (
-            <div
-              key={password.id}
-              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md"
-            >
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        categoryColors[password.category] || categoryColors.other
-                      }`}
-                    >
-                      {password.category}
-                    </span>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {passwords.map((password) => {
+            const category = passwordCategory(password.category);
+            const CategoryIcon = category.icon;
+            const revealed = revealedPasswords[password.id];
+            const busy = revealingPassword === password.id;
+
+            return (
+              <Card key={password.id} className="flex flex-col">
+                <div className="mb-3 flex items-start gap-3">
+                  <span
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${category.tileClasses}`}
+                  >
+                    <CategoryIcon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-extrabold text-ink">
+                      {password.title}
+                    </h3>
+                    {password.username && (
+                      <p className="truncate text-sm text-ink-soft">
+                        {password.username}
+                      </p>
+                    )}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {password.title}
-                  </h3>
-                  {password.username && (
-                    <p className="mt-1 text-sm text-gray-600">{password.username}</p>
+                  <Badge className={category.badgeClasses}>
+                    {category.label}
+                  </Badge>
+                </div>
+
+                <div className="mb-3 space-y-3">
+                  <div>
+                    <span className="mb-1 block text-xs font-bold text-ink-faint">
+                      Password
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <code className="min-h-11 flex-1 content-center break-all rounded-xl bg-cream-deep px-3 py-2 font-mono text-sm text-ink">
+                        {revealed || '••••••••••••'}
+                      </code>
+                      <button
+                        onClick={() => togglePasswordVisibility(password.id)}
+                        disabled={busy}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-deep disabled:opacity-50"
+                        aria-label={revealed ? 'Hide password' : 'Show password'}
+                      >
+                        {busy ? (
+                          <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                        ) : revealed ? (
+                          <EyeOff className="h-5 w-5" aria-hidden />
+                        ) : (
+                          <Eye className="h-5 w-5" aria-hidden />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => copyPassword(password.id)}
+                        disabled={busy}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-deep disabled:opacity-50"
+                        aria-label="Copy password"
+                      >
+                        {copiedId === password.id ? (
+                          <Check className="h-5 w-5 text-leaf-deep" aria-hidden />
+                        ) : (
+                          <Copy className="h-5 w-5" aria-hidden />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {password.url && (
+                    <div>
+                      <span className="mb-1 block text-xs font-bold text-ink-faint">
+                        Website
+                      </span>
+                      <a
+                        href={password.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-h-11 items-center gap-1.5 font-bold text-primary-deep"
+                      >
+                        <span className="truncate">{password.url}</span>
+                        <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
+                      </a>
+                    </div>
+                  )}
+
+                  {password.notes && (
+                    <div>
+                      <span className="mb-1 block text-xs font-bold text-ink-faint">
+                        Notes
+                      </span>
+                      <p className="text-sm text-ink-soft">{password.notes}</p>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              <div className="mb-4 space-y-2">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500">
-                    Password
-                  </label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <code className="flex-1 rounded bg-gray-100 px-2 py-1 text-sm font-mono">
-                      {revealedPasswords[password.id]
-                        ? revealedPasswords[password.id]
-                        : '••••••••••••'}
-                    </code>
-                    <button
-                      onClick={() => togglePasswordVisibility(password.id)}
-                      disabled={revealingPassword === password.id}
-                      className="text-sm text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
-                    >
-                      {revealingPassword === password.id
-                        ? 'Loading...'
-                        : revealedPasswords[password.id]
-                        ? 'Hide'
-                        : 'Show'}
-                    </button>
-                  </div>
+                <div className="mt-auto flex flex-wrap gap-2">
+                  <LinkButton
+                    href={`/dashboard/passwords/${password.id}/edit`}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    Edit
+                  </LinkButton>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => handleDelete(password.id)}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    Delete
+                  </Button>
                 </div>
 
-                {password.url && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500">
-                      URL
-                    </label>
-                    <a
-                      href={password.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 block truncate text-sm text-indigo-600 hover:text-indigo-500"
-                    >
-                      {password.url}
-                    </a>
-                  </div>
-                )}
-
-                {password.notes && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500">
-                      Notes
-                    </label>
-                    <p className="mt-1 text-sm text-gray-600">{password.notes}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Link
-                  href={`/dashboard/passwords/${password.id}/edit`}
-                  className="flex-1 rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleDelete(password.id)}
-                  className="flex-1 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 shadow-sm hover:bg-red-100"
-                >
-                  Delete
-                </button>
-              </div>
-
-              <div className="mt-3 text-xs text-gray-500">
-                Updated {new Date(password.updatedAt).toLocaleDateString()}
-              </div>
-            </div>
-          ))}
+                <div className="mt-3 text-xs font-semibold text-ink-faint">
+                  Updated {new Date(password.updatedAt).toLocaleDateString()}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

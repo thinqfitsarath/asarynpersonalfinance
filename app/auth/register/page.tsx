@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -98,144 +104,109 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-cream px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            Create Your Account
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-primary text-white">
+            <ShieldCheck className="h-8 w-8" aria-hidden />
+          </div>
+          <h1 className="mb-1 text-3xl font-extrabold text-ink">
+            Create your account
           </h1>
-          <p className="text-gray-600">Start securing your family's legacy today</p>
+          <p className="text-ink-soft">
+            Start securing your family&apos;s legacy today
+          </p>
         </div>
 
-        <div className="rounded-lg bg-white p-8 shadow-lg">
+        <Card className="p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {errors.submit && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-                {errors.submit}
-              </div>
-            )}
+            {errors.submit && <Alert tone="error">{errors.submit}</Alert>}
 
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Full Name
-              </label>
-              <input
+              <Label htmlFor="name">Full name</Label>
+              <Input
                 id="name"
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="name"
+                error={errors.name}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <input
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 type="email"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="email"
+                error={errors.email}
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
                 type="password"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="new-password"
+                error={errors.password}
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
               />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-ink-faint">
                 At least 8 characters with uppercase, lowercase, and number
               </p>
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Confirm Password
-              </label>
-              <input
+              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Input
                 id="confirmPassword"
                 type="password"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="new-password"
+                error={errors.confirmPassword}
                 value={formData.confirmPassword}
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
               />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.confirmPassword}
-                </p>
-              )}
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-            >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+            <Button type="submit" loading={loading} className="w-full">
+              {loading ? 'Creating account…' : 'Create account'}
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-ink-soft">
               Already have an account?{' '}
-              <Link
-                href="/auth/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
+              <Link href="/auth/login" className="font-bold text-primary-deep">
                 Sign in
               </Link>
             </p>
           </div>
-        </div>
+        </Card>
 
-        <div className="mt-4 text-center">
+        <div className="mt-5 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="inline-flex min-h-11 items-center gap-1.5 font-bold text-ink-soft"
           >
-            ← Back to home
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Back to home
           </Link>
         </div>
       </div>

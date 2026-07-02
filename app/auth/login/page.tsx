@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,35 +47,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-cream px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            Welcome Back
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-primary text-white">
+            <ShieldCheck className="h-8 w-8" aria-hidden />
+          </div>
+          <h1 className="mb-1 text-3xl font-extrabold text-ink">
+            Welcome back
           </h1>
-          <p className="text-gray-600">Sign in to access your secure vault</p>
+          <p className="text-ink-soft">Sign in to access your family vault</p>
         </div>
 
-        <div className="rounded-lg bg-white p-8 shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
+        <Card className="p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && <Alert tone="error">{error}</Alert>}
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <input
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 type="email"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="email"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -78,17 +78,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
                 type="password"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                autoComplete="current-password"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -96,34 +91,31 @@ export default function LoginPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+            <Button type="submit" loading={loading} className="w-full">
+              {loading ? 'Signing in…' : 'Sign in'}
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+            <p className="text-ink-soft">
+              Don&apos;t have an account?{' '}
               <Link
                 href="/auth/register"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-bold text-primary-deep"
               >
                 Sign up
               </Link>
             </p>
           </div>
-        </div>
+        </Card>
 
-        <div className="mt-4 text-center">
+        <div className="mt-5 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="inline-flex min-h-11 items-center gap-1.5 font-bold text-ink-soft"
           >
-            ← Back to home
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Back to home
           </Link>
         </div>
       </div>

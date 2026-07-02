@@ -2,7 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Wand2 } from 'lucide-react';
+import { PASSWORD_CATEGORIES } from '@/lib/categories';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Button, LinkButton } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function NewPasswordPage() {
   const router = useRouter();
@@ -65,170 +74,129 @@ export default function NewPasswordPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <Link
-          href="/dashboard/passwords"
-          className="text-sm text-indigo-600 hover:text-indigo-500"
-        >
-          ← Back to passwords
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Add New Password</h1>
-        <p className="mt-2 text-gray-600">
-          Store a new password securely with encryption
-        </p>
-      </div>
+    <div className="mx-auto max-w-xl">
+      <PageHeader
+        title="Add a password"
+        description="Stored securely with encryption"
+        backHref="/dashboard/passwords"
+        backLabel="Passwords"
+      />
 
-      <div className="rounded-lg bg-white p-8 shadow">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.submit && (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
-              {errors.submit}
-            </div>
-          )}
+      <Card className="p-5 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {errors.submit && <Alert tone="error">{errors.submit}</Alert>}
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-              Category *
-            </label>
-            <select
+            <Label htmlFor="category">Category *</Label>
+            <Select
               id="category"
               required
               value={formData.category}
+              error={errors.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
-              <option value="bank">Bank</option>
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-              <option value="laptop">Laptop</option>
-              <option value="investment">Investment</option>
-              <option value="google">Google</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.category && (
-              <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-            )}
+              {Object.entries(PASSWORD_CATEGORIES).map(([key, { label }]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Title / Account Name *
-            </label>
-            <input
+            <Label htmlFor="title">Title / Account name *</Label>
+            <Input
               id="title"
               type="text"
               required
               maxLength={200}
               value={formData.title}
+              error={errors.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="e.g., Chase Bank Checking"
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username / Email
-            </label>
-            <input
+            <Label htmlFor="username">Username / Email</Label>
+            <Input
               id="username"
               type="text"
               value={formData.username}
+              error={errors.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="username or email"
             />
-            {errors.username && (
-              <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password *
-            </label>
-            <div className="mt-1 flex gap-2">
-              <input
-                id="password"
-                type="text"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Enter password"
-              />
-              <button
+            <Label htmlFor="password">Password *</Label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  id="password"
+                  type="text"
+                  required
+                  value={formData.password}
+                  error={errors.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Enter password"
+                />
+              </div>
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={generatePassword}
-                className="whitespace-nowrap rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-200"
+                className="shrink-0 self-start"
               >
-                Generate
-              </button>
+                <Wand2 className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Generate</span>
+              </Button>
             </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700">
-              Website URL
-            </label>
-            <input
+            <Label htmlFor="url">Website URL</Label>
+            <Input
               id="url"
               type="url"
               value={formData.url}
+              error={errors.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="https://example.com"
             />
-            {errors.url && (
-              <p className="mt-1 text-sm text-red-600">{errors.url}</p>
-            )}
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-              Notes
-            </label>
-            <textarea
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
               id="notes"
               rows={4}
               maxLength={1000}
               value={formData.notes}
+              error={errors.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="Additional notes or security questions"
             />
-            {errors.notes && (
-              <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
-            )}
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1.5 text-xs text-ink-faint">
               {formData.notes.length}/1000 characters
             </p>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : 'Save Password'}
-            </button>
-            <Link
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+            <LinkButton
               href="/dashboard/passwords"
-              className="flex-1 rounded-md bg-white px-4 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              variant="secondary"
+              className="sm:flex-1"
             >
               Cancel
-            </Link>
+            </LinkButton>
+            <Button type="submit" loading={loading} className="sm:flex-1">
+              {loading ? 'Saving…' : 'Save password'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

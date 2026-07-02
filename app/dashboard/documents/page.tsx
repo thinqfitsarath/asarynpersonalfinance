@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { FileText, Pencil, Trash2, Plus } from 'lucide-react';
+import { documentCategory, DOCUMENT_CATEGORIES } from '@/lib/categories';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Button, LinkButton } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Label } from '@/components/ui/Label';
+import { Alert } from '@/components/ui/Alert';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageLoading } from '@/components/ui/Spinner';
 
 interface Document {
   id: string;
@@ -17,13 +27,6 @@ interface Document {
   createdAt: string;
   updatedAt: string;
 }
-
-const categoryColors: Record<string, string> = {
-  investment: 'bg-green-100 text-green-800',
-  insurance: 'bg-blue-100 text-blue-800',
-  house: 'bg-purple-100 text-purple-800',
-  other: 'bg-gray-100 text-gray-800',
-};
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -84,173 +87,143 @@ export default function DocumentsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-gray-600">Loading documents...</div>
-      </div>
-    );
+    return <PageLoading label="Loading documents…" />;
   }
+
+  const details = (document: Document) =>
+    [
+      { label: 'Provider', value: document.provider },
+      { label: 'Policy #', value: document.policyNumber },
+      { label: 'Amount', value: formatCurrency(document.amount) },
+      { label: 'Premium', value: formatCurrency(document.premium) },
+      {
+        label: 'Maturity',
+        value: document.maturityDate
+          ? new Date(document.maturityDate).toLocaleDateString()
+          : null,
+      },
+    ].filter((d) => d.value);
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Document Manager</h1>
-          <p className="mt-2 text-gray-600">
-            Track investments, insurance policies, and important documents
-          </p>
-        </div>
-        <Link
-          href="/dashboard/documents/new"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Document
-        </Link>
-      </div>
+      <PageHeader
+        title="Documents"
+        description="Investments, insurance, and other important papers"
+        action={
+          <LinkButton href="/dashboard/documents/new">
+            <Plus className="h-5 w-5" aria-hidden />
+            Add
+          </LinkButton>
+        }
+      />
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">
+        <Alert tone="error" className="mb-4">
           {error}
-        </div>
+        </Alert>
       )}
 
-      <div className="mb-6">
-        <label htmlFor="filter" className="block text-sm font-medium text-gray-700">
-          Filter by category
-        </label>
-        <select
+      <div className="mb-6 max-w-xs">
+        <Label htmlFor="filter">Filter by category</Label>
+        <Select
           id="filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm"
         >
           <option value="">All categories</option>
-          <option value="investment">Investment</option>
-          <option value="insurance">Insurance</option>
-          <option value="house">House</option>
-          <option value="other">Other</option>
-        </select>
+          {Object.entries(DOCUMENT_CATEGORIES).map(([key, { label }]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {documents.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No documents</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding a new document.
-          </p>
-          <div className="mt-6">
-            <Link
-              href="/dashboard/documents/new"
-              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-            >
-              Add Document
-            </Link>
-          </div>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No documents yet"
+          description="Get started by adding your first document."
+          action={
+            <LinkButton href="/dashboard/documents/new">
+              <Plus className="h-5 w-5" aria-hidden />
+              Add document
+            </LinkButton>
+          }
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {documents.map((document) => (
-            <div
-              key={document.id}
-              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md"
-            >
-              <div className="mb-4">
-                <div className="mb-2 flex items-center gap-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {documents.map((document) => {
+            const category = documentCategory(document.category);
+            const CategoryIcon = category.icon;
+
+            return (
+              <Card key={document.id} className="flex flex-col">
+                <div className="mb-3 flex items-start gap-3">
                   <span
-                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                      categoryColors[document.category] || categoryColors.other
-                    }`}
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${category.tileClasses}`}
                   >
-                    {document.category}
+                    <CategoryIcon className="h-5 w-5" aria-hidden />
                   </span>
-                  {document.documentType && (
-                    <span className="text-xs text-gray-500">
-                      {document.documentType}
-                    </span>
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-extrabold text-ink">
+                      {document.title}
+                    </h3>
+                    {document.documentType && (
+                      <p className="truncate text-sm text-ink-soft">
+                        {document.documentType}
+                      </p>
+                    )}
+                  </div>
+                  <Badge className={category.badgeClasses}>
+                    {category.label}
+                  </Badge>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {document.title}
-                </h3>
+
                 {document.description && (
-                  <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                  <p className="mb-3 text-sm text-ink-soft line-clamp-2">
                     {document.description}
                   </p>
                 )}
-              </div>
 
-              <div className="mb-4 space-y-2 text-sm">
-                {document.provider && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Provider:</span>
-                    <span className="font-medium text-gray-900">{document.provider}</span>
-                  </div>
+                {details(document).length > 0 && (
+                  <dl className="mb-3 space-y-1.5 rounded-xl bg-cream-deep p-3 text-sm">
+                    {details(document).map(({ label, value }) => (
+                      <div key={label} className="flex justify-between gap-3">
+                        <dt className="text-ink-faint">{label}</dt>
+                        <dd className="text-right font-bold text-ink">
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
                 )}
-                {document.policyNumber && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Policy #:</span>
-                    <span className="font-medium text-gray-900">{document.policyNumber}</span>
-                  </div>
-                )}
-                {document.amount && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Amount:</span>
-                    <span className="font-medium text-gray-900">
-                      {formatCurrency(document.amount)}
-                    </span>
-                  </div>
-                )}
-                {document.premium && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Premium:</span>
-                    <span className="font-medium text-gray-900">
-                      {formatCurrency(document.premium)}
-                    </span>
-                  </div>
-                )}
-                {document.maturityDate && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Maturity:</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(document.maturityDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
 
-              <div className="flex gap-2">
-                <Link
-                  href={`/dashboard/documents/${document.id}/edit`}
-                  className="flex-1 rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleDelete(document.id)}
-                  className="flex-1 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 shadow-sm hover:bg-red-100"
-                >
-                  Delete
-                </button>
-              </div>
+                <div className="mt-auto flex flex-wrap gap-2">
+                  <LinkButton
+                    href={`/dashboard/documents/${document.id}/edit`}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    Edit
+                  </LinkButton>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => handleDelete(document.id)}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    Delete
+                  </Button>
+                </div>
 
-              <div className="mt-3 text-xs text-gray-500">
-                Updated {new Date(document.updatedAt).toLocaleDateString()}
-              </div>
-            </div>
-          ))}
+                <div className="mt-3 text-xs font-semibold text-ink-faint">
+                  Updated {new Date(document.updatedAt).toLocaleDateString()}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
