@@ -52,7 +52,7 @@ Store and manage:
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Authentication**: NextAuth.js v4
-- **Database**: Prisma ORM (SQLite/PostgreSQL)
+- **Database**: Prisma ORM with PostgreSQL (Neon on Netlify)
 - **Encryption**: Node.js native crypto (AES-256-GCM)
 - **UI**: Tailwind CSS + shadcn/ui components
 - **Validation**: Zod
@@ -90,7 +90,7 @@ See [LOCAL_SETUP.md](./LOCAL_SETUP.md) for detailed manual setup instructions.
 1. ✅ Checks for Node.js installation
 2. 📦 Installs all dependencies
 3. 🔑 Generates secure encryption keys (NEXTAUTH_SECRET, ENCRYPTION_KEY)
-4. 📄 Creates .env file with SQLite configuration
+4. 📄 Creates .env file with PostgreSQL configuration
 5. 🗄️ Sets up database (Prisma generate + migrate)
 6. 🎉 Ready to run!
 
@@ -131,7 +131,7 @@ asarynpersonalfinance/
 │   │   └── auth.ts       # Authentication helpers
 │   └── validations/      # Zod schemas for input validation
 ├── prisma/
-│   └── schema.prisma     # Database schema (SQLite/PostgreSQL)
+│   └── schema.prisma     # Database schema (PostgreSQL)
 ├── middleware.ts         # Route protection middleware
 ├── setup.sh              # Automated setup script
 ├── LOCAL_SETUP.md        # Detailed setup guide
@@ -271,7 +271,7 @@ npx prisma studio
 npx prisma generate
 
 # Create migration
-npx prisma migrate dev --name migration_name
+npx prisma db push
 
 # Reset database (WARNING: deletes all data)
 npx prisma migrate reset

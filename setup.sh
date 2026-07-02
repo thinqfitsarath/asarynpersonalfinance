@@ -41,8 +41,9 @@ if [ ! -f .env ]; then
 
     # Create .env file
     cat > .env << EOF
-# Database (using SQLite for easy setup)
-DATABASE_URL="file:./dev.db"
+# Database (PostgreSQL — start one locally with:
+#   docker run -d --name flm-pg -p 5432:5432 -e POSTGRES_PASSWORD=localdev -e POSTGRES_DB=familylegacy postgres:16)
+DATABASE_URL="postgresql://postgres:localdev@localhost:5432/familylegacy"
 
 # NextAuth Configuration
 NEXTAUTH_URL="http://localhost:3000"
@@ -59,10 +60,10 @@ fi
 
 echo ""
 
-# Set up database
+# Set up database (requires the PostgreSQL from DATABASE_URL to be running)
 echo "🗄️  Setting up database..."
 npx prisma generate
-npx prisma migrate dev --name init
+npx prisma db push
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to set up database"

@@ -16,6 +16,13 @@ Before you begin, make sure you have installed:
 - **npm** (comes with Node.js)
   - Check version: `npm --version`
 
+- **PostgreSQL** (version 14 or higher) — easiest via Docker:
+  ```bash
+  docker run -d --name flm-pg -p 5432:5432 \
+    -e POSTGRES_PASSWORD=localdev -e POSTGRES_DB=familylegacy postgres:16
+  ```
+  (The deployed app on Netlify uses Neon Postgres via the Netlify DB extension.)
+
 ---
 
 ## 🚀 **Quick Setup (Automatic)**
@@ -79,7 +86,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 Create a file named `.env` in the root directory with:
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://postgres:localdev@localhost:5432/familylegacy"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="<paste-your-generated-secret>"
 ENCRYPTION_KEY="<paste-your-generated-key>"
@@ -87,12 +94,14 @@ ENCRYPTION_KEY="<paste-your-generated-key>"
 
 ### Step 4: Set Up Database
 
+Make sure your PostgreSQL server is running (see Prerequisites), then:
+
 ```bash
 # Generate Prisma client
 npx prisma generate
 
-# Run migrations
-npx prisma migrate dev --name init
+# Create the tables
+npx prisma db push
 ```
 
 ### Step 5: Start the Server
@@ -136,9 +145,11 @@ Then visit: http://localhost:3001
 
 Reset the database:
 ```bash
-rm prisma/dev.db
-npx prisma migrate dev --name init
+npx prisma db push --force-reset
 ```
+
+If the connection fails, make sure your local PostgreSQL is running
+(`docker start flm-pg` if you used the Docker command above).
 
 ### Node Modules Issues
 
@@ -170,7 +181,7 @@ npm start
 npx prisma studio
 
 # Reset database
-npx prisma migrate reset
+npx prisma db push --force-reset
 ```
 
 ---
