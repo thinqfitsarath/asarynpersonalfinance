@@ -26,6 +26,7 @@ interface TrustedContact {
   accessLevel: string;
   delayDays: number;
   isActive: boolean;
+  user?: { id: string; name: string | null };
   createdAt: string;
   updatedAt: string;
 }
@@ -237,6 +238,7 @@ export default function TrustedContactsPage() {
 
                 <div className="mt-3 text-xs font-semibold text-ink-faint">
                   Added {new Date(contact.createdAt).toLocaleDateString()}
+                  {contact.user?.name ? ` by ${contact.user.name}` : ''}
                 </div>
               </Card>
             );

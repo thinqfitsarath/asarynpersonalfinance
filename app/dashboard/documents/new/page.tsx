@@ -36,6 +36,7 @@ export default function NewDocumentPage() {
     amount: '',
     premium: '',
     maturityDate: '',
+    visibility: 'family',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -232,6 +233,19 @@ export default function NewDocumentPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="visibility">Who can see this?</Label>
+            <Select
+              id="visibility"
+              value={formData.visibility}
+              onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+            >
+              <option value="family">Everyone in the family</option>
+              <option value="adults">Adults only</option>
+              <option value="private">Only me</option>
+            </Select>
           </div>
 
           <div>

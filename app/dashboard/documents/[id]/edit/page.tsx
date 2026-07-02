@@ -39,6 +39,7 @@ export default function EditDocumentPage() {
     amount: '',
     premium: '',
     maturityDate: '',
+    visibility: 'family',
   });
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function EditDocumentPage() {
         maturityDate: data.maturityDate
           ? new Date(data.maturityDate).toISOString().split('T')[0]
           : '',
+        visibility: data.visibility || 'family',
       });
     } catch (err) {
       setErrors({ submit: 'Failed to load document' });
@@ -272,6 +274,19 @@ export default function EditDocumentPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="visibility">Who can see this?</Label>
+            <Select
+              id="visibility"
+              value={formData.visibility}
+              onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+            >
+              <option value="family">Everyone in the family</option>
+              <option value="adults">Adults only</option>
+              <option value="private">Only me</option>
+            </Select>
           </div>
 
           <div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Eye,
   EyeOff,
+  Lock,
   Copy,
   Check,
   KeyRound,
@@ -32,6 +33,8 @@ interface Password {
   username?: string;
   url?: string;
   notes?: string;
+  visibility?: string;
+  user?: { id: string; name: string | null };
   createdAt: string;
   updatedAt: string;
 }
@@ -301,8 +304,22 @@ export default function PasswordsPage() {
                   </Button>
                 </div>
 
-                <div className="mt-3 text-xs font-semibold text-ink-faint">
-                  Updated {new Date(password.updatedAt).toLocaleDateString()}
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-ink-faint">
+                  <span>
+                    Updated {new Date(password.updatedAt).toLocaleDateString()}
+                  </span>
+                  {password.user?.name && (
+                    <span>Added by {password.user.name}</span>
+                  )}
+                  {password.visibility === 'private' && (
+                    <span className="inline-flex items-center gap-1 text-plum-deep">
+                      <Lock className="h-3 w-3" aria-hidden />
+                      Only me
+                    </span>
+                  )}
+                  {password.visibility === 'adults' && (
+                    <span className="text-sun-deep">Adults only</span>
+                  )}
                 </div>
               </Card>
             );

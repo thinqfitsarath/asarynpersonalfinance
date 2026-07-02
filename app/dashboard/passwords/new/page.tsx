@@ -24,6 +24,7 @@ export default function NewPasswordPage() {
     password: '',
     url: '',
     notes: '',
+    visibility: 'family',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,6 +154,19 @@ export default function NewPasswordPage() {
                 <span className="hidden sm:inline">Generate</span>
               </Button>
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="visibility">Who can see this?</Label>
+            <Select
+              id="visibility"
+              value={formData.visibility}
+              onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+            >
+              <option value="family">Everyone in the family</option>
+              <option value="adults">Adults only</option>
+              <option value="private">Only me</option>
+            </Select>
           </div>
 
           <div>

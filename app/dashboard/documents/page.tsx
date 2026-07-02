@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileText, Pencil, Trash2, Plus } from 'lucide-react';
+import { FileText, Pencil, Trash2, Plus, Lock } from 'lucide-react';
 import { documentCategory, DOCUMENT_CATEGORIES } from '@/lib/categories';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -24,6 +24,8 @@ interface Document {
   amount?: number;
   premium?: number;
   maturityDate?: string;
+  visibility?: string;
+  user?: { id: string; name: string | null };
   createdAt: string;
   updatedAt: string;
 }
@@ -218,8 +220,22 @@ export default function DocumentsPage() {
                   </Button>
                 </div>
 
-                <div className="mt-3 text-xs font-semibold text-ink-faint">
-                  Updated {new Date(document.updatedAt).toLocaleDateString()}
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-ink-faint">
+                  <span>
+                    Updated {new Date(document.updatedAt).toLocaleDateString()}
+                  </span>
+                  {document.user?.name && (
+                    <span>Added by {document.user.name}</span>
+                  )}
+                  {document.visibility === 'private' && (
+                    <span className="inline-flex items-center gap-1 text-plum-deep">
+                      <Lock className="h-3 w-3" aria-hidden />
+                      Only me
+                    </span>
+                  )}
+                  {document.visibility === 'adults' && (
+                    <span className="text-sun-deep">Adults only</span>
+                  )}
                 </div>
               </Card>
             );
