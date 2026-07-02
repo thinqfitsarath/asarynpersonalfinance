@@ -6,6 +6,7 @@ import {
   KeyRound,
   FileText,
   HeartHandshake,
+  Users,
   Plus,
   ChevronRight,
   Sparkles,
@@ -32,6 +33,12 @@ const sections = [
     label: 'Trusted Contacts',
     icon: HeartHandshake,
     tile: 'bg-coral-soft text-coral-deep',
+  },
+  {
+    href: '/dashboard/family',
+    label: 'Family Members',
+    icon: Users,
+    tile: 'bg-plum-soft text-plum-deep',
   },
 ];
 
@@ -60,13 +67,15 @@ export default async function DashboardPage() {
     role: session.user.role as FamilyRole,
   };
 
-  const [passwordCount, documentCount, contactCount] = await Promise.all([
-    prisma.password.count({ where: readableWhere(familyUser) }),
-    prisma.document.count({ where: readableWhere(familyUser) }),
-    prisma.trustedContact.count({ where: { familyId: familyUser.familyId } }),
-  ]);
+  const [passwordCount, documentCount, contactCount, memberCount] =
+    await Promise.all([
+      prisma.password.count({ where: readableWhere(familyUser) }),
+      prisma.document.count({ where: readableWhere(familyUser) }),
+      prisma.trustedContact.count({ where: { familyId: familyUser.familyId } }),
+      prisma.user.count({ where: { familyId: familyUser.familyId } }),
+    ]);
 
-  const counts = [passwordCount, documentCount, contactCount];
+  const counts = [passwordCount, documentCount, contactCount, memberCount];
   const firstName = (session.user.name || session.user.email || '').split(
     ' '
   )[0];
@@ -82,7 +91,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {sections.map(({ href, label, icon: Icon, tile }, i) => (
           <Link key={href} href={href}>
             <Card className="flex items-center gap-4 transition-colors hover:border-sand-strong">

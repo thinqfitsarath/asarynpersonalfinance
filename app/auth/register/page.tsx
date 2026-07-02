@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
@@ -18,7 +18,16 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    inviteCode: '',
   });
+
+  // Pre-fill the invite code from a shared registration link (?invite=CODE)
+  useEffect(() => {
+    const invite = new URLSearchParams(window.location.search).get('invite');
+    if (invite) {
+      setFormData((prev) => ({ ...prev, inviteCode: invite }));
+    }
+  }, []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -72,6 +81,7 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
+          inviteCode: formData.inviteCode || undefined,
         }),
       });
 
@@ -183,6 +193,26 @@ export default function RegisterPage() {
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
               />
+            </div>
+
+            <div>
+              <Label htmlFor="inviteCode">Family invite code (optional)</Label>
+              <Input
+                id="inviteCode"
+                type="text"
+                autoCapitalize="characters"
+                autoComplete="off"
+                placeholder="e.g. KWNH-73QP"
+                error={errors.inviteCode}
+                value={formData.inviteCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, inviteCode: e.target.value })
+                }
+              />
+              <p className="mt-1.5 text-xs text-ink-faint">
+                Have a code from a family member? Enter it to join their
+                vault. Leave empty to start your own.
+              </p>
             </div>
 
             <Button type="submit" loading={loading} className="w-full">

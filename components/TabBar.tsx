@@ -8,6 +8,7 @@ import {
   KeyRound,
   FileText,
   HeartHandshake,
+  Users,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
@@ -62,13 +63,17 @@ export function TabBar() {
   );
 }
 
+const desktopExtras = [
+  { href: '/dashboard/family', label: 'Family', icon: Users, exact: false },
+];
+
 /** Inline nav links — desktop only */
 export function DesktopNav() {
   const pathname = usePathname();
 
   return (
     <div className="hidden items-center gap-1 sm:flex">
-      {tabs.map(({ href, label, icon: Icon, exact }) => {
+      {[...tabs, ...desktopExtras].map(({ href, label, icon: Icon, exact }) => {
         const active = isActive(pathname, href, exact);
         return (
           <Link
