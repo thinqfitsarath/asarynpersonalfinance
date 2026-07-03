@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
     publicPaths.includes(pathname) ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/emergency') ||
-    pathname.startsWith('/api/emergency');
+    pathname.startsWith('/api/emergency/');
 
   // Check authentication for protected routes
   if (!isPublicPath) {

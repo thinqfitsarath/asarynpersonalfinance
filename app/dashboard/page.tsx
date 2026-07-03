@@ -63,6 +63,12 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
+  // Never run family-scoped queries with an unresolved familyId — Prisma
+  // would drop the undefined filter and aggregate across all families.
+  if (!session.user.familyId) {
+    redirect('/auth/login');
+  }
+
   const familyUser = {
     id: session.user.id,
     familyId: session.user.familyId,

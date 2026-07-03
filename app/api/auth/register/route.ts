@@ -69,10 +69,17 @@ export async function POST(req: Request) {
       });
 
       if (invite) {
-        await tx.familyInvite.update({
-          where: { id: invite.id },
+        // Atomically consume the invite: only succeeds if it is still
+        // unused. Guards against two simultaneous registrations racing
+        // to redeem the same code — the loser rolls the whole
+        // transaction back (including this user) and gets a 400.
+        const consumed = await tx.familyInvite.updateMany({
+          where: { id: invite.id, usedById: null },
           data: { usedById: created.id, usedAt: new Date() },
         });
+        if (consumed.count === 0) {
+          throw new Error('INVITE_ALREADY_USED');
+        }
       }
 
       await tx.auditLog.create({
@@ -103,6 +110,13 @@ export async function POST(req: Request) {
     if (error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error.message === 'INVITE_ALREADY_USED') {
+      return NextResponse.json(
+        { error: 'Invalid or expired invite code' },
         { status: 400 }
       );
     }
