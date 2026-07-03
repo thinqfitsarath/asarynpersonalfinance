@@ -34,7 +34,12 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        // NextAuth collapses every sign-in failure into one error, so this
+        // can be a wrong password OR the service being briefly unreachable.
+        // Don't assert the credentials are wrong when we can't be sure.
+        setError(
+          "We couldn't sign you in. Double-check your email and password — if they're correct, the service may be briefly unavailable, so please try again in a moment."
+        );
         setLoading(false);
         return;
       }
