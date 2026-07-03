@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getCurrentAppUser } from "@/lib/auth/current-user";
 import { redirect } from "next/navigation";
 import {
-  ShieldCheck,
   Lock,
   EyeOff,
   HeartHandshake,
@@ -10,6 +9,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LinkButton } from "@/components/ui/Button";
+import { LogoMark } from "@/components/Logo";
 import { Reveal } from "@/components/Reveal";
 import {
   HeroScene,
@@ -82,7 +82,7 @@ export default async function Home() {
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
           <div className="flex items-center gap-2 font-extrabold text-ink">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
-              <ShieldCheck className="h-5 w-5" aria-hidden />
+              <LogoMark className="h-6 w-6" />
             </span>
             <span className="whitespace-nowrap text-lg">Family Legacy</span>
           </div>
@@ -268,7 +268,7 @@ export default async function Home() {
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 px-4 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
           <div className="flex items-center gap-2 font-extrabold text-ink">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white">
-              <ShieldCheck className="h-4 w-4" aria-hidden />
+              <LogoMark className="h-5 w-5" />
             </span>
             Family Legacy Manager
           </div>

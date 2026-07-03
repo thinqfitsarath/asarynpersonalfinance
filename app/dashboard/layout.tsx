@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { LogoMark } from '@/components/Logo';
 import { getCurrentAppUser } from '@/lib/auth/current-user';
 import { TabBar, DesktopNav, SignOutButton } from '@/components/TabBar';
 
@@ -27,7 +27,7 @@ export default async function DashboardLayout({
             className="flex min-h-11 items-center gap-2 font-extrabold text-ink"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white">
-              <ShieldCheck className="h-5 w-5" aria-hidden />
+              <LogoMark className="h-5 w-5" />
             </span>
             <span className="text-lg">Family Legacy</span>
           </Link>
