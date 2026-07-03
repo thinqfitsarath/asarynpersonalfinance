@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { authClient } from '@/lib/auth/client';
 import {
   House,
   KeyRound,
@@ -99,7 +99,10 @@ export function DesktopNav() {
 export function SignOutButton() {
   return (
     <button
-      onClick={() => signOut({ callbackUrl: '/' })}
+      onClick={async () => {
+        await authClient.signOut();
+        window.location.href = '/';
+      }}
       className="flex min-h-11 items-center gap-1.5 rounded-xl px-3 font-bold text-ink-soft hover:bg-cream-deep"
       aria-label="Sign out"
     >

@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getCurrentAppUser } from '@/lib/auth/current-user';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -57,22 +56,22 @@ const tips = [
 ];
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const appUser = await getCurrentAppUser();
 
-  if (!session) {
-    redirect('/auth/login');
+  if (!appUser) {
+    redirect('/signin');
   }
 
   // Never run family-scoped queries with an unresolved familyId — Prisma
   // would drop the undefined filter and aggregate across all families.
-  if (!session.user.familyId) {
-    redirect('/auth/login');
+  if (!appUser.familyId) {
+    redirect('/welcome');
   }
 
   const familyUser = {
-    id: session.user.id,
-    familyId: session.user.familyId,
-    role: session.user.role as FamilyRole,
+    id: appUser.id,
+    familyId: appUser.familyId,
+    role: appUser.role as FamilyRole,
   };
 
   const [passwordCount, documentCount, contactCount, memberCount] =
@@ -99,7 +98,7 @@ export default async function DashboardPage() {
       contact: { select: { contactName: true } },
     },
   });
-  const firstName = (session.user.name || session.user.email || '').split(
+  const firstName = (appUser.name || appUser.email || '').split(
     ' '
   )[0];
 

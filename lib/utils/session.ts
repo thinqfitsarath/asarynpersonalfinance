@@ -1,24 +1,24 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { getCurrentAppUser, type AppUser } from '@/lib/auth/current-user';
+
+/** A fully-provisioned user — guaranteed to belong to a family. */
+export type AuthedUser = AppUser & { familyId: string };
 
 /**
- * Gets the current user session
- * Returns null if not authenticated
+ * Gets the current app user (Neon Auth session → our profile row), or null.
  */
 export async function getCurrentUser() {
-  const session = await getServerSession(authOptions);
-  return session?.user || null;
+  return getCurrentAppUser();
 }
 
 /**
- * Requires authentication for API routes
- * Returns user if authenticated, or returns 401 response.
- * Fails loud (403) if family resolution ever failed rather than
- * silently returning empty data.
+ * Requires authentication for API routes.
+ * Returns `{ user, error }` — the SAME shape the routes already consume
+ * (user.id / user.familyId / user.role). Fails loud (403) if the user has
+ * no family yet rather than silently returning empty data.
  */
 export async function requireAuth() {
-  const user = await getCurrentUser();
+  const user = await getCurrentAppUser();
 
   if (!user) {
     return {
@@ -40,5 +40,5 @@ export async function requireAuth() {
     };
   }
 
-  return { user, error: null };
+  return { user: user as AuthedUser, error: null };
 }

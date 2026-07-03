@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
+import { getCurrentAppUser } from "@/lib/auth/current-user";
 import { redirect } from "next/navigation";
 import {
   ShieldCheck,
@@ -9,7 +9,6 @@ import {
   Check,
   Sparkles,
 } from "lucide-react";
-import { authOptions } from "@/lib/auth";
 import { LinkButton } from "@/components/ui/Button";
 import { Reveal } from "@/components/Reveal";
 import {
@@ -70,9 +69,9 @@ const securityPoints = [
 ];
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentAppUser();
 
-  if (session) {
+  if (user) {
     redirect("/dashboard");
   }
 
@@ -89,13 +88,13 @@ export default async function Home() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href="/auth/login"
+              href="/signin"
               className="hidden min-h-11 items-center whitespace-nowrap rounded-xl px-4 font-bold text-ink-soft hover:bg-cream-deep sm:flex"
             >
               Sign in
             </Link>
             <LinkButton
-              href="/auth/register"
+              href="/signin"
               className="min-h-10 whitespace-nowrap px-4 py-2"
             >
               Get started
@@ -124,10 +123,10 @@ export default async function Home() {
               your whole family can rely on, today and someday.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <LinkButton href="/auth/register" className="px-8">
+              <LinkButton href="/signin" className="px-8">
                 Start your vault — it&apos;s free
               </LinkButton>
-              <LinkButton href="/auth/login" variant="secondary" className="px-8">
+              <LinkButton href="/signin" variant="secondary" className="px-8">
                 Sign in
               </LinkButton>
             </div>
@@ -255,7 +254,7 @@ export default async function Home() {
                 Five minutes now saves your family a mountain of worry later.
               </p>
               <div className="mt-8 flex justify-center">
-                <LinkButton href="/auth/register" className="px-10">
+                <LinkButton href="/signin" className="px-10">
                   Get started — free
                 </LinkButton>
               </div>
@@ -275,7 +274,7 @@ export default async function Home() {
           </div>
           <p className="text-sm text-ink-faint">
             © 2026 · Your security is our priority ·{" "}
-            <Link href="/auth/login" className="font-bold text-primary-deep">
+            <Link href="/signin" className="font-bold text-primary-deep">
               Sign in
             </Link>
           </p>

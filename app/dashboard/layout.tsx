@@ -1,8 +1,7 @@
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
-import { authOptions } from '@/lib/auth';
+import { getCurrentAppUser } from '@/lib/auth/current-user';
 import { TabBar, DesktopNav, SignOutButton } from '@/components/TabBar';
 
 export default async function DashboardLayout({
@@ -10,10 +9,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentAppUser();
 
-  if (!session) {
-    redirect('/auth/login');
+  if (!user) {
+    redirect('/signin');
+  }
+  if (!user.familyId) {
+    redirect('/welcome');
   }
 
   return (

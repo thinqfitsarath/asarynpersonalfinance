@@ -112,7 +112,7 @@ export default function FamilyPage() {
   };
 
   const inviteLink = newCode
-    ? `${window.location.origin}/auth/register?invite=${newCode}`
+    ? `${window.location.origin}/join?code=${newCode}`
     : '';
 
   if (loading) {

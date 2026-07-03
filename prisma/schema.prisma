@@ -42,7 +42,8 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String
+  password      String?   // legacy (NextAuth) — unused after Neon Auth migration
+  neonAuthUserId String?  // links this profile row to the Neon Auth identity (unique in practice)
   masterPassword String?   // Encrypted master password for vault access
   familyId      String?
   role          String    @default("OWNER") // 'OWNER' | 'ADULT' | 'CHILD'
@@ -57,6 +58,8 @@ model User {
   trustedContacts TrustedContact[]
   emergencyAccesses EmergencyAccess[]
   auditLogs     AuditLog[]
+
+  @@index([neonAuthUserId])
 }
 
 model Account {
