@@ -9,5 +9,11 @@ export default auth.middleware({
 });
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  // /welcome must also run through the middleware: it's the OAuth/magic-link
+  // callbackURL, and the Neon Auth session-verifier exchange only happens
+  // inside auth.middleware() — landing there without it means the session
+  // cookie never gets set. /welcome itself still requires a session (correct:
+  // nobody should land there outside an active sign-in flow), so widening the
+  // matcher here doesn't expose anything that wasn't already gated.
+  matcher: ['/dashboard/:path*', '/welcome/:path*'],
 };

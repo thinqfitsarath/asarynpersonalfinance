@@ -11,9 +11,13 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { DoodleKey, DoodleHeart } from '@/components/illustrations';
 
-const CALLBACK = '/welcome';
+const CALLBACK_PATH = '/welcome';
 
 export default function SignInPage() {
+  const callbackURL =
+    typeof window !== 'undefined'
+      ? new URL(CALLBACK_PATH, window.location.origin).toString()
+      : CALLBACK_PATH;
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -33,7 +37,7 @@ export default function SignInPage() {
     try {
       const { error } = await authClient.signIn.magicLink({
         email: email.trim(),
-        callbackURL: CALLBACK,
+        callbackURL,
       });
       if (error) {
         setError(error.message || 'Could not send the link. Please try again.');
@@ -53,7 +57,8 @@ export default function SignInPage() {
     try {
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: CALLBACK,
+        callbackURL,
+        newUserCallbackURL: callbackURL,
       });
       // Redirects to Google on success.
     } catch {
