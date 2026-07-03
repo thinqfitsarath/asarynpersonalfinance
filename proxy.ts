@@ -4,9 +4,19 @@ import { auth } from '@/lib/auth/server';
 // unauthenticated users to the passwordless sign-in page. Everything else
 // — the landing page, /signin, /join, /welcome, /api/auth/*, and the
 // entire independent /emergency/* system — stays public.
-export default auth.middleware({
-  loginUrl: '/signin',
-});
+//
+// `auth.middleware(...)` is built lazily (on the first real request) rather
+// than called here at module top level — Netlify's edge-function bundler
+// evaluates this module while packaging it, before any request exists; see
+// lib/auth/server.ts for why that must stay side-effect-free.
+let handler: ReturnType<typeof auth.middleware> | undefined;
+
+export default function proxyMiddleware(
+  ...args: Parameters<ReturnType<typeof auth.middleware>>
+) {
+  handler ??= auth.middleware({ loginUrl: '/signin' });
+  return handler(...args);
+}
 
 export const config = {
   // /welcome must also run through the middleware: it's the OAuth/magic-link
